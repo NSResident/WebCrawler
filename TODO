@@ -1,7 +1,6 @@
 Crawling:
     Parse config file
-    Make stack
-    Make queue
+    Implement Queue/Stack
     Make parsing threads
     Robots.txt crawl
 
