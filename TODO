@@ -1,0 +1,11 @@
+Crawling:
+    Parse config file
+    Make stack
+    Make queue
+    Make parsing threads
+    Robots.txt crawl
+
+Parsing:
+    Find links
+    Find keywords
+
