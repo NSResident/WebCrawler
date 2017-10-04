@@ -18,10 +18,12 @@ def DFS():
 
 #Create threads that crawl from urls in queue/stack
 #While crawling look for login form page (?)
+def Crawler():
+    return
 
 #Create threads that parse texts returned from crawlers (?)
-#OR crawling threads can also parse for keywords
-
+def Parser():
+    return
 #Save parsed keywords to a file: url_passwords.txt
 
 
