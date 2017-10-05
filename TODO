@@ -9,7 +9,7 @@ Crawling:
 
 Parsing:
     Find headings and titles
-    Find (idk how) other relevant keywords
+    Get rest of the words
 
 BruteForce:
     Generate reverse and leet speak of parsed words
