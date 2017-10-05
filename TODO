@@ -1,10 +1,17 @@
 Crawling:
     Parse config file
     Implement Queue/Stack
-    Make parsing threads
-    Robots.txt crawl
+    Crawl and grab links from each page, add to datastruct
+    Only grab links that match starting domain (i.e facebook.com)
+    Recover from HTTP 400/500 Errors
+    Robots.txt crawl (probably add robotsCrawl after initial crawling is done)
+    Crawl relevant subdomains
 
 Parsing:
-    Find links
-    Find keywords
+    Find headings and titles
+    Find (idk how) other relevant keywords
 
+BruteForce:
+    Generate reverse and leet speak of parsed words
+    Find form elements
+    Notify user whether a login was succesful 
