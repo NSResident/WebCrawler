@@ -40,6 +40,18 @@ def searchInit():
     return
 
 #Create threads that parse texts returned from crawlers (?)
+def reverse(string):
+    result = ""
+    for char in string:
+        resulti+= char
+    return result
+
+def leetSpeak(string):
+    leet = {"a" : "4", "e" : "3", "l" : "1", "t" : "7", "o" : "0"}
+    for i in range(string):
+        if string(i) in leet
+            string(i) = leet[string(i)]
+    return string
 
 def Parser():
     while True:
@@ -48,7 +60,7 @@ def Parser():
         #Get all strings
         word_list = soup.get_text().split()
         for element in word_list:
-            word_dict[element] = element
+            word_dict[element] = {element, reverse(element), leetSpeak(element)}
     return
 #Save parsed keywords to a file: url_passwords.txt
 
