@@ -39,13 +39,14 @@ def searchInit():
         break
     return
 
-#Create threads that parse texts returned from crawlers (?)
+#Creates the reverse of a string
 def reverse(string):
     result = ""
     for char in string:
         resulti+= char
     return result
 
+#Converts a string into leet speak
 def leetSpeak(string):
     leet = {"a" : "4", "e" : "3", "l" : "1", "t" : "7", "o" : "0"}
     for i in range(string):
@@ -53,6 +54,8 @@ def leetSpeak(string):
             string(i) = leet[string(i)]
     return string
 
+#Parses html pages from the queue and creates a list:
+# [word, reversed, leetSpeak] to be placed into a dictionary of words
 def Parser():
     while True:
         page = parserQueue.get()
