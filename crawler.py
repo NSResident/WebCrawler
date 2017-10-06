@@ -20,11 +20,19 @@ from threading import Thread
 #Create threads that crawl from urls in queue/stack
 #While crawling look for login form page (?)
 
+#Variables from config
+max_pages = 0
+max_depth = 0
+search_flag = 0
+
 #Queue for page objects
 parserQueue = Queue.Queue()
 
 #Dictionary of keywords
 word_dict = {}
+
+#Form url
+form_url = ""
 
 def searchInit():
     #Makes q/s
@@ -59,20 +67,11 @@ def leetSpeak(string):
 def Parser():
     while True:
         page = parserQueue.get()
-        soup = BeautifulSoup(html_doc, 'html.parser')
+        soup = BeautifulSoup(page.html_text, 'html.parser')
         #Get all strings
         word_list = soup.get_text().split()
         for element in word_list:
             word_dict[element] = {element, reverse(element), leetSpeak(element)}
     return
-#Save parsed keywords to a file: url_passwords.txt
 
-
-
-
-
-
-
-
-#Exec Form bruteforcer with file
 #OR Call bruteForce func
