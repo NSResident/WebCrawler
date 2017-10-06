@@ -1,5 +1,6 @@
 import page
 import Queue
+import Stack
 import requests
 from bs4 import BeautifulSoup
 from threading import Thread
@@ -19,7 +20,11 @@ from threading import Thread
 #Create threads that crawl from urls in queue/stack
 #While crawling look for login form page (?)
 
+#Queue for page objects
 parserQueue = Queue.Queue()
+
+#Dictionary of keywords
+word_dict = {}
 
 def searchInit():
     #Makes q/s
@@ -40,7 +45,10 @@ def Parser():
     while True:
         page = parserQueue.get()
         soup = BeautifulSoup(html_doc, 'html.parser')
-        
+        #Get all strings
+        word_list = soup.get_text().split()
+        for element in word_list:
+            word_dict[element] = element
     return
 #Save parsed keywords to a file: url_passwords.txt
 
