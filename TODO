@@ -1,7 +1,7 @@
 Crawling:
+    Check if form field was found and set form_url to it
     Create map of already traversed links (?)
     Robots.txt crawl (probably add robotsCrawl after initial crawling is done)
-
 
 Parsing:
 

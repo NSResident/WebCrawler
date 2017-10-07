@@ -56,6 +56,8 @@ def searchInit():
         next_page = search(nextUrl)
         # Check if object was empty from page error Edit to check for response
         if next_page.url_list and nextUrl.depth < max_depth:
+            if next_page.login_url:
+                form_url = login_url
             # Put all links into q/s
             for url_item in next_page.url_list:
                 #print url_item
