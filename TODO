@@ -1,19 +1,14 @@
 Crawling:
     Parse config file
-    Implement Queue/Stack
-    Search Func: Crawl and grab links from each page, add to datastruct
-    Dump html text into parser data strut
     Only grab links that match starting domain (i.e facebook.com)
     Recover from HTTP 400/500 Errors
     Robots.txt crawl (probably add robotsCrawl after initial crawling is done)
     Crawl relevant subdomains
 
 Parsing:
-    Uses Queue/Stack for getting the html text
-    Tokenize by space
-    Find headings and titles
-    Get rest of the words
-    
+   Check reverse and leet functions
+   Check map keys/values
+
 BruteForce:
     Generate reverse and leet speak of parsed words
     Find form elements

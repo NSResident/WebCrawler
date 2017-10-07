@@ -6,25 +6,11 @@ import requests
 from bs4 import BeautifulSoup
 # from threading import Thread
 
-# Read from crawler.conf
-
-# Crawl url from stdin (?)
-
-# BFS
-# Search entire page for links, return array of links to search
-# Use queue to store links to crawl
-
-# DFS
-# Search entire page for links, return array of links to search
-# Use stack to store links to crawl
-
-# Create threads that crawl from urls in queue/stack
-# While crawling look for login form page (?)
-
 # Variables from config
-max_pages = 5
-max_depth = 5
-search_flag = 1
+search_flag = 0 if input("BFS (0) or DFS (1): ") == 0 else 1
+print search_flag
+max_pages = input("Max pages: ") 
+max_depth = input("Max depth: ") 
 
 # Queue for page objects
 parserQueue = Queue()
