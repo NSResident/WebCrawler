@@ -1,13 +1,9 @@
 Crawling:
-    Parse config file
-    Only grab links that match starting domain (i.e facebook.com)
-    Recover from HTTP 400/500 Errors
+    Create map of already traversed links (?)
     Robots.txt crawl (probably add robotsCrawl after initial crawling is done)
-    Crawl relevant subdomains
+
 
 Parsing:
-   Check reverse and leet functions
-   Check map keys/values
 
 BruteForce:
     Generate reverse and leet speak of parsed words

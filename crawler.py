@@ -8,7 +8,6 @@ from bs4 import BeautifulSoup
 
 # Variables from config
 search_flag = 0 if input("BFS (0) or DFS (1): ") == 0 else 1
-print search_flag
 max_pages = input("Max pages: ") 
 max_depth = input("Max depth: ") 
 
@@ -18,14 +17,16 @@ parserQueue = Queue()
 # Dictionary of keywords
 word_dict = {}
 
-# Form url
-form_url = "http://www.youtube.com"
+#Starting url
+initial_url = "http://www.youtube.com"
 
+# Form url
+form_url = ""
 
 def searchInit():
-    # Makes q/s
+    #:ssword:q Makes q/s
     # Add first url to q/s
-    first_url = URL_Node(form_url, 0)
+    first_url = URL_Node(initial_url, 0)
     if search_flag == 0:
         crawlerQueue = Queue()
         crawlerQueue.put(first_url)
@@ -37,17 +38,27 @@ def searchInit():
     # Make Q for Parser
     while counter >= 0:
         # Take from q/s and check for domain, if it does not continue
+        # Also added if queue was empty to cover edge case of q/s hanging when max_pages < available pages
         if search_flag == 0:
+            if crawlerQueue.empty():
+                return
             nextUrl = crawlerQueue.get()
         else:
+            if crawlerStack.is_empty():
+                return
             nextUrl = crawlerStack.pop()
+
+        # Stay within the domain of initial url
+        if nextUrl.url.split(".")[1] != initial_url.split(".")[1]:
+            continue        
         # Call search and return page object
+        print nextUrl.url
         next_page = search(nextUrl)
         # Check if object was empty from page error Edit to check for response
         if next_page.url_list and nextUrl.depth < max_depth:
             # Put all links into q/s
             for url_item in next_page.url_list:
-                print url_item
+                #print url_item
                 next_node = URL_Node(url_item, nextUrl.depth + 1)
                 if search_flag == 0:
                     crawlerQueue.put(next_node)
@@ -76,6 +87,13 @@ def search(link):
     crawledPage = Page(link_list, html_text, login_url)
     return crawledPage
 
+# Parses domain/robots.txt for links and calls searchInit
+def robotSearch():
+    robot_text = requests.request('GET',initial_url+"/robots.txt").text
+    #Parse for lines with disallow, then do initial_url/path
+    #Option 1 call searchInit on all initial_url/path individually (I like this one)
+    #Option 2 store all intial_url/path in stack for searchInit
+    return
 
 # Creates the reverse of a string
 def reverse(string):
@@ -93,7 +111,7 @@ def leetSpeak(string):
 
 # Parses html pages from the queue and creates a list:
 # [word, reversed, leetSpeak] to be placed into a dictionary of words
-def Parser():
+def parser():
     while True:
         page = parserQueue.get()
         print parserQueue.qsize()
@@ -109,5 +127,6 @@ def Parser():
 
 
 searchInit()
-Parser()
+parser()
+#robotSearch()
 # OR Call bruteForce func
