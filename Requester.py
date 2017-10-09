@@ -14,7 +14,6 @@ class Requester:
         header = "HEAD" + path + " HTTP/1.1\n"
                 +"Host: " + host + '\n'
                 +"User-Agent: " + user_agent + '\n'
-                +"Accpet"
                 +"Accept-Language: en-US,en"+'\n'
        
        sock = socket(AF_INET, SOCK_STREAM)
