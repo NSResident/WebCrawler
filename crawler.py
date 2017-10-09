@@ -118,10 +118,12 @@ def parser():
         page = parserQueue.get()
         print parserQueue.qsize()
         soup = BeautifulSoup(page.html_text, 'html.parser')
-        print soup.title
         # Get all strings
-        word_list = soup.get_text().split()
+        word_list = soup.get_text().strip('\"\'').split()
         for element in word_list:
+            if (len(element) < 6) or (len(element) > 15):
+                continue
+            print element
             word_dict[element] = {element, reverse(element), leetSpeak(element)}
         if parserQueue.empty():
             return

@@ -1,15 +1,12 @@
 Crawling:
-    Check if form field was found and set form_url to it
     Create map of already traversed links (?)
     Robots.txt crawl (probably add robotsCrawl after initial crawling is done)
 
 Parsing:
 
 BruteForce:
-    Generate reverse and leet speak of parsed words
     Find form elements
     Notify user whether a login was succesful 
-    Find 2 form fields, 1 being password
 
 Questions:
     -Do the keywords have to be in search order
