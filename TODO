@@ -1,3 +1,7 @@
+Requester:
+    Implement GET
+    Implement POST
+
 Crawling:
     Create map of already traversed links (?)
     Robots.txt crawl (probably add robotsCrawl after initial crawling is done)
