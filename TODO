@@ -1,6 +1,12 @@
 Requester:
     Implement GET
-    Implement POST
+        -Error checks
+        -403/404/500 checks
+        -Parse url for path
+        -Parse response for payload
+        -Loop for long messages
+        -Make modular
+    Implement POST (HOLD)
 
 Crawling:
     Create map of already traversed links (?)
