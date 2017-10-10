@@ -21,7 +21,7 @@ word_dict = {}
 link_dict = {}
 
 # Starting url
-starting_url = "http://www.youtube.com"
+starting_url = "http://www.facebook.com"
 
 
 def searchInit(initial_url):
@@ -58,21 +58,23 @@ def searchInit(initial_url):
         # print "Url is "
         # print nextUrl.url
         next_page = search(nextUrl)
+        # print nextUrl.url
         # Check if object was empty from page error Edit to check for response
-        if next_page.url_list and nextUrl.depth < max_depth:
-            if next_page.login_url and not form_url:
-                form_url = next_page.login_url
-            # Put all links into q/s
-            for url_item in next_page.url_list:
-                next_node = URL_Node(url_item, nextUrl.depth + 1)
-                # Ignore repeated links when crawling
-                if link_dict.get(next_node.url) is None:
-                    link_dict[next_node.url] = next_node.url
-                    if search_flag == 0:
-                        crawlerQueue.put(next_node)
-                    else:
-                        crawlerStack.push(next_node)
-        parserQueue.put(next_page)
+        if next_page:
+            if next_page.url_list and nextUrl.depth < max_depth:
+                if next_page.login_url and not form_url:
+                    form_url = next_page.login_url
+                # Put all links into q/s
+                for url_item in next_page.url_list:
+                    next_node = URL_Node(url_item, nextUrl.depth + 1)
+                    # Ignore repeated links when crawling
+                    if link_dict.get(next_node.url) is None:
+                        link_dict[next_node.url] = next_node.url
+                        if search_flag == 0:
+                            crawlerQueue.put(next_node)
+                        else:
+                            crawlerStack.push(next_node)
+            parserQueue.put(next_page)
         counter = counter - 1
     return
 
@@ -80,8 +82,11 @@ def searchInit(initial_url):
 # Searches url and returns a "page" of text and links
 def search(domain):
     # Get Text
-    html_text = requests.request('GET', domain.url).text
-    soup = BeautifulSoup(html_text, 'html.parser')
+    try:
+        html_text = requests.request('GET', domain.url, timeout=7).text
+        soup = BeautifulSoup(html_text, 'html.parser')
+    except:
+        return
     # Get links
     link_list = []
     for link in soup.find_all('a'):
@@ -111,6 +116,18 @@ def robotSearch():
     # Option 2 store all intial_url/path in stack for searchInit
     return
 
+
+def subdomainSearch():
+    subdomain_text = open("subdomains-100.txt", 'r')
+    subdomains = subdomain_text.read().split('\n')
+    del subdomains[-1]
+    domain_index = starting_url.find('.')
+    for domain in subdomains:
+        domain_to_search = "http://" + domain + starting_url[domain_index:]
+        print domain_to_search
+        searchInit(domain_to_search)
+
+    return
 
 def robotParse(page, delim):
     filter_links = page.split(delim)
@@ -154,11 +171,13 @@ def parser():
         if parserQueue.empty():
             for key in word_dict.keys():
                 print key
+                continue
             return
     return
 
 searchInit(starting_url)
 robotSearch()
+subdomainSearch()
 parser()
 # robotSearch()
 # OR Call bruteForce func

@@ -12,7 +12,7 @@ Requester:
 Crawling:
     Create map of already traversed links (?)
     Robots.txt crawl (probably add robotsCrawl after initial crawling is done)
-
+    Subdomain crawl
 Parsing:
 
 BruteForce:
