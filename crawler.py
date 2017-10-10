@@ -8,8 +8,8 @@ from bs4 import BeautifulSoup
 
 # Variables from config
 search_flag = 0 if input("BFS (0) or DFS (1): ") == 0 else 1
-max_pages = input("Max pages: ") 
-max_depth = input("Max depth: ") 
+max_pages = input("Max pages: ")
+max_depth = input("Max depth: ")
 
 # Queue for page objects
 parserQueue = Queue()
@@ -17,15 +17,18 @@ parserQueue = Queue()
 # Dictionary of keywords
 word_dict = {}
 
-#Starting url
-initial_url = "http://www.youtube.com"
+# Dictoinary of visited Linkes
+link_dict = {}
 
-# Form url
-form_url = ""
+# Starting url
+starting_url = "http://www.youtube.com"
 
-def searchInit():
-    #:ssword:q Makes q/s
+
+def searchInit(initial_url):
+    # :ssword:q Makes q/s
     # Add first url to q/s
+    form_url = ""
+    link_dict[initial_url] = initial_url
     first_url = URL_Node(initial_url, 0)
     if search_flag == 0:
         crawlerQueue = Queue()
@@ -41,40 +44,43 @@ def searchInit():
         # Also added if queue was empty to cover edge case of q/s hanging when max_pages < available pages
         if search_flag == 0:
             if crawlerQueue.empty():
-                return
+                break
             nextUrl = crawlerQueue.get()
         else:
             if crawlerStack.is_empty():
-                return
+                break
             nextUrl = crawlerStack.pop()
 
         # Stay within the domain of initial url
         if nextUrl.url.split(".")[1] != initial_url.split(".")[1]:
-            continue        
+            continue
         # Call search and return page object
-        print nextUrl.url
+        # print "Url is "
+        # print nextUrl.url
         next_page = search(nextUrl)
         # Check if object was empty from page error Edit to check for response
         if next_page.url_list and nextUrl.depth < max_depth:
-            if next_page.login_url:
-                form_url = login_url
+            if next_page.login_url and not form_url:
+                form_url = next_page.login_url
             # Put all links into q/s
             for url_item in next_page.url_list:
-                #print url_item
                 next_node = URL_Node(url_item, nextUrl.depth + 1)
-                if search_flag == 0:
-                    crawlerQueue.put(next_node)
-                else:
-                    crawlerStack.push(next_node)
+                # Ignore repeated links when crawling
+                if link_dict.get(next_node.url) is None:
+                    link_dict[next_node.url] = next_node.url
+                    if search_flag == 0:
+                        crawlerQueue.put(next_node)
+                    else:
+                        crawlerStack.push(next_node)
         parserQueue.put(next_page)
         counter = counter - 1
     return
 
 
 # Searches url and returns a "page" of text and links
-def search(link):
+def search(domain):
     # Get Text
-    html_text = requests.request('GET', link.url).text
+    html_text = requests.request('GET', domain.url).text
     soup = BeautifulSoup(html_text, 'html.parser')
     # Get links
     link_list = []
@@ -85,17 +91,37 @@ def search(link):
     # Check for login
     login_url = ''
     if soup.find_all(type='password'):
-        login_url = link
+        login_url = domain.url
     crawledPage = Page(link_list, html_text, login_url)
     return crawledPage
 
+
 # Parses domain/robots.txt for links and calls searchInit
 def robotSearch():
-    robot_text = requests.request('GET',initial_url+"/robots.txt").text
-    #Parse for lines with disallow, then do initial_url/path
-    #Option 1 call searchInit on all initial_url/path individually (I like this one)
-    #Option 2 store all intial_url/path in stack for searchInit
+    robot_text = requests.request('GET', starting_url + "/robots.txt").text
+    allow_links = robotParse(robot_text, 'Allow: ')
+    disallow_links = robotParse(robot_text, 'Disallow: ')
+    parsed_links = allow_links + disallow_links
+    for link in parsed_links:
+        print link
+        # print "calling searchInit"
+        searchInit(starting_url + link)
+    # Parse for lines with disallow, then do initial_url/path
+    # Option 1 call searchInit on all initial_url/path individually (I like this one)
+    # Option 2 store all intial_url/path in stack for searchInit
     return
+
+
+def robotParse(page, delim):
+    filter_links = page.split(delim)
+    parsable_links = {}
+    for link in filter_links:
+        if link.startswith('/'):
+            endindex = link.find('\n')
+            domain = link[:endindex]
+            parsable_links[domain] = domain
+    return parsable_links.keys()
+
 
 # Creates the reverse of a string
 def reverse(string):
@@ -119,18 +145,20 @@ def parser():
         print parserQueue.qsize()
         soup = BeautifulSoup(page.html_text, 'html.parser')
         # Get all strings
-        word_list = soup.get_text().strip('\"\'').split()
+        word_list = soup.get_text().replace("'", '').replace('"', '') \
+            .replace(',','').replace(';','').split()
         for element in word_list:
-            if (len(element) < 6) or (len(element) > 15):
+            if (len(element) < 6) or (len(element) > 15) or (':' in element):
                 continue
-            print element
             word_dict[element] = {element, reverse(element), leetSpeak(element)}
         if parserQueue.empty():
+            for key in word_dict.keys():
+                print key
             return
     return
 
-
-searchInit()
+searchInit(starting_url)
+robotSearch()
 parser()
-#robotSearch()
+# robotSearch()
 # OR Call bruteForce func

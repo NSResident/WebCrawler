@@ -7,6 +7,7 @@ Requester:
         -Loop for long messages
         -Make modular
     Implement POST (HOLD)
+    WireShark for 300 Error
 
 Crawling:
     Create map of already traversed links (?)
