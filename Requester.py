@@ -1,3 +1,6 @@
+import re
+import threading
+import time
 import socket
 
 class Requester:
@@ -12,9 +15,13 @@ class Requester:
 
     def __del__(self):
         self.sock.close()
-        
-    def get(self, url = '/'):
-        #Parse url for path
+
+    def get(self, url):
+        #path =  url[url.find('/')+1:]
+        #path = path[path.find('/')+1:]
+        #path = path[path.find('/'):]
+        #if path[0] != '/':
+        #    path = '/'
         header = ("GET {} HTTP/1.1\r\n" 
                     "Host: {}\r\n"
                     "User-Agent:{}\r\n" 
@@ -24,16 +31,48 @@ class Requester:
 
         print header
         self.sock.send(header)
-        #Create loop to keep receiving messages until a timeout where no more messages are read
-        response = self.sock.recv(8192)
+        response_header = ""
+        response = ""
+        status_code = ""
+        total = 0
+        initial_response = self.sock.recv(1024)
 
-        # Check error code and handle 404/500 errors
-        # Parse reponse for payload -> html_page
+        #Parse for header fields 
+        for s in initial_response.splitlines():
+            response_header += s
+            response_header += "\n"
+            field =  s.strip().split(': ')
+            if field[0] == 'Content-Length':
+               total = int(field[1])
+            elif 'HTTP/1.1' in field[0]:
+                status_code = field[0].split()[1]
+            elif field[0] == '':
+                break
+            #else if field[0] == 'Transfer-Encoding':
+            #    if field[1] == 'chunked':
 
+        
+        response = initial_response[initial_response.find('<html'):]
+        #Handle Error Codes
+        pattern = re.compile("([3-5]..)")
+        if(pattern.match(status_code)):
+            return "Error"
+
+        self.sock.send(header)
+        current_amount = len(response) 
+        while current_amount < total:
+            latest_response  = self.sock.recv(1024)
+            current_amount = current_amount + len(latest_response)
+            response += latest_response
+        response = response[:response.find('</html>')+7]
         return response 
 
     def post(self, url, username, password):
+        print response
         return
 
-r =  Requester("nexon.net")
-print r.get()
+path = 'animals.mom.me'
+r =  Requester(path)
+path = 'http://animals.mom.me'
+print r.get(path)
+

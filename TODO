@@ -1,18 +1,12 @@
 Requester:
     Implement GET
-        -Error checks
-        -403/404/500 checks
-        -Parse url for path
-        -Parse response for payload
-        -Loop for long messages
-        -Make modular
+        -Error checks socket connections
+        -Chunking (Might have to ask)
     Implement POST (HOLD)
     WireShark for 300 Error
 
 Crawling:
-    Create map of already traversed links (?)
-    Robots.txt crawl (probably add robotsCrawl after initial crawling is done)
-    Subdomain crawl
+    Add http:// and last / to first url    
 Parsing:
 
 BruteForce:
@@ -21,8 +15,4 @@ BruteForce:
 
 Questions:
     -Do the keywords have to be in search order
-    Robots.txt/subdomain
-    -How deep
-    -Does it count towards page count 
-    -Does it also follow dfs/bfs
 
