@@ -3,10 +3,11 @@ Requester:
         -Error checks socket connections
         -Chunking (Might have to ask)
     Implement POST (HOLD)
-    WireShark for 300 Error
+    SSL OPTIONAL***
+        -WireShark for 300 Error
 
 Crawling:
-    Add http:// and last / to first url    
+
 Parsing:
 
 BruteForce:

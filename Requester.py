@@ -11,7 +11,9 @@ class Requester:
         self.host = domain
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         # Handle if connection not made
-        self.sock.connect((domain, 80))
+        self.sock.connect((domain, 443))
+        if self.sock == -1:
+            print -1 
 
     def __del__(self):
         self.sock.close()
@@ -56,7 +58,7 @@ class Requester:
         #Handle Error Codes
         pattern = re.compile("([3-5]..)")
         if(pattern.match(status_code)):
-            return "Error"
+            return -1 
 
         self.sock.send(header)
         current_amount = len(response) 
