@@ -83,11 +83,10 @@ def searchInit(initial_url):
 def search(domain):
     # Get Text
     # Change  requests to use own get
-    try:
-        html_text = requests.request('GET', domain.url, timeout=7).text
+    html_text = requests.request('GET', domain.url, timeout=7).text
     if html_text == -1:
         return
-        soup = BeautifulSoup(html_text, 'html.parser')
+    soup = BeautifulSoup(html_text, 'html.parser')
     # Get links
     link_list = []
     for link in soup.find_all('a'):
