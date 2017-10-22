@@ -1,3 +1,4 @@
+import time
 from page import Page
 from url_node import URL_Node
 from Queue import Queue
@@ -5,6 +6,7 @@ from Stack import Stack
 import requests
 from bs4 import BeautifulSoup
 # from threading import Thread
+from Requester import Requester
 
 # Variables from config
 search_flag = 0 if input("BFS (0) or DFS (1): ") == 0 else 1
@@ -21,15 +23,17 @@ word_dict = {}
 link_dict = {}
 
 # Starting url
-starting_url = "http://www.facebook.com"
-
+starting_url = "http://austinchildrensacademy.org"
+main_domain = starting_url.split("//")[1].split(".")[0]
+print main_domain
+requester = Requester(starting_url)
 
 def searchInit(initial_url):
     # :ssword:q Makes q/s
     # Add first url to q/s
     form_url = ""
     link_dict[initial_url] = initial_url
-    first_url = URL_Node(initial_url, 0)
+    first_url = URL_Node(initial_url+'/', 0)
     if search_flag == 0:
         crawlerQueue = Queue()
         crawlerQueue.put(first_url)
@@ -52,7 +56,9 @@ def searchInit(initial_url):
             nextUrl = crawlerStack.pop()
 
         # Stay within the domain of initial url
-        if nextUrl.url.split(".")[1] != initial_url.split(".")[1]:
+        # Needs to work for AA.BBB.CCC.com
+        print nextUrl.url
+        if nextUrl.url.split("//")[1].split(".")[0] != main_domain:
             continue
         # Call search and return page object
         # print "Url is "
@@ -83,13 +89,16 @@ def searchInit(initial_url):
 def search(domain):
     # Get Text
     # Change  requests to use own get
-    html_text = requests.request('GET', domain.url, timeout=7).text
+    #html_text = requests.request('GET', domain.url, timeout=7).text
+    html_text = requester.get(domain.url) 
+    print html_text
     if html_text == -1:
-        return
+        return None
     soup = BeautifulSoup(html_text, 'html.parser')
     # Get links
     link_list = []
     for link in soup.find_all('a'):
+        print link
         if link.get('href') is not None and "http" in link.get('href'):
             link_list.append(link.get('href'))
 
@@ -158,6 +167,11 @@ def leetSpeak(string):
 # [word, reversed, leetSpeak] to be placed into a dictionary of words
 def parser():
     while True:
+        if parserQueue.empty():
+            for key in word_dict.keys():
+                #print key
+                continue
+            return
         page = parserQueue.get()
         print parserQueue.qsize()
         soup = BeautifulSoup(page.html_text, 'html.parser')
@@ -168,16 +182,11 @@ def parser():
             if (len(element) < 6) or (len(element) > 15) or (':' in element):
                 continue
             word_dict[element] = {element, reverse(element), leetSpeak(element)}
-        if parserQueue.empty():
-            for key in word_dict.keys():
-                print key
-                continue
-            return
     return
 
 searchInit(starting_url)
-robotSearch()
-subdomainSearch()
+#robotSearch()
+#subdomainSearch()
 parser()
 # robotSearch()
 # OR Call bruteForce func

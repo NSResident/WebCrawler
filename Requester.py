@@ -8,10 +8,11 @@ class Requester:
     user_agent = "CSE361-KappaBot"
 
     def __init__(self, domain):
-        self.host = domain
+        self.host = domain.replace('http://', '')
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.sock.settimeout(7)
         # Handle if connection not made
-        self.sock.connect((domain, 443))
+        self.sock.connect((self.host, 80))
         if self.sock == -1:
             print -1 
 
@@ -19,26 +20,28 @@ class Requester:
         self.sock.close()
 
     def get(self, url):
-        #path =  url[url.find('/')+1:]
-        #path = path[path.find('/')+1:]
-        #path = path[path.find('/'):]
-        #if path[0] != '/':
-        #    path = '/'
+        path =  url[url.find('/')+1:]
+        path = path[path.find('/')+1:]
+        path = path[path.find('/'):]
+        if path[0] != '/':
+            path = '/'
         header = ("GET {} HTTP/1.1\r\n" 
                     "Host: {}\r\n"
-                    "User-Agent:{}\r\n" 
-                    "Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8\r\n" 
-                    "Accept-Language: en-US,en\r\n" 
-                    "Connection: Keep-Alive\r\n\r\n").format(url,self.host,self.user_agent)
+                    "User-Agent: {}\r\n" 
+                    "Pragma: no-cache\r\n"
+                    "Accept: text/plain, text/html\r\n" 
+                    "Accept-Encoding: \r\n"
+                    "Accept-Language: en-US\r\n" 
+                    "Connection: Keep-Alive\r\n\r\n").format(path,self.host,self.user_agent)
 
-        print header
+        #"Cache-Control: no-cache, no-store, must-revalidate\r\n"
         self.sock.send(header)
         response_header = ""
         response = ""
         status_code = ""
         total = 0
-        initial_response = self.sock.recv(1024)
-
+        initial_response = self.sock.recv(4096)
+        print initial_response
         #Parse for header fields 
         for s in initial_response.splitlines():
             response_header += s
@@ -73,8 +76,8 @@ class Requester:
         print response
         return
 
-path = 'animals.mom.me'
-r =  Requester(path)
-path = 'http://animals.mom.me'
-print r.get(path)
+#path = 'queensfarm.org'
+#r =  Requester(path)
+#path = '/'
+#print r.get(path)
 
