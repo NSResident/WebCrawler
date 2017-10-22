@@ -1,4 +1,3 @@
-import time
 from page import Page
 from url_node import URL_Node
 from Queue import Queue
@@ -25,7 +24,6 @@ link_dict = {}
 # Starting url
 starting_url = "http://austinchildrensacademy.org"
 main_domain = starting_url.split("//")[1].split(".")[0]
-print main_domain
 requester = Requester(starting_url)
 
 def searchInit(initial_url):
@@ -91,14 +89,13 @@ def search(domain):
     # Change  requests to use own get
     #html_text = requests.request('GET', domain.url, timeout=7).text
     html_text = requester.get(domain.url) 
-    print html_text
     if html_text == -1:
         return None
     soup = BeautifulSoup(html_text, 'html.parser')
     # Get links
     link_list = []
     for link in soup.find_all('a'):
-        print link
+        #print link
         if link.get('href') is not None and "http" in link.get('href'):
             link_list.append(link.get('href'))
 
@@ -169,7 +166,7 @@ def parser():
     while True:
         if parserQueue.empty():
             for key in word_dict.keys():
-                #print key
+                print key
                 continue
             return
         page = parserQueue.get()

@@ -10,7 +10,7 @@ class Requester:
     def __init__(self, domain):
         self.host = domain.replace('http://', '')
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.settimeout(7)
+        self.sock.settimeout(4)
         # Handle if connection not made
         self.sock.connect((self.host, 80))
         if self.sock == -1:
@@ -23,7 +23,7 @@ class Requester:
         path =  url[url.find('/')+1:]
         path = path[path.find('/')+1:]
         path = path[path.find('/'):]
-        if path[0] != '/':
+        if path == '' or path[0] != '/':
             path = '/'
         header = ("GET {} HTTP/1.1\r\n" 
                     "Host: {}\r\n"
@@ -41,7 +41,7 @@ class Requester:
         status_code = ""
         total = 0
         initial_response = self.sock.recv(4096)
-        print initial_response
+        #print initial_response
         #Parse for header fields 
         for s in initial_response.splitlines():
             response_header += s
@@ -65,19 +65,27 @@ class Requester:
 
         self.sock.send(header)
         current_amount = len(response) 
-        while current_amount < total:
-            latest_response  = self.sock.recv(1024)
-            current_amount = current_amount + len(latest_response)
-            response += latest_response
-        response = response[:response.find('</html>')+7]
+        #while current_amount < total:
+        try:
+            while True:
+                latest_response  = self.sock.recv(1024)
+                current_amount = current_amount + len(latest_response)
+                response += latest_response
+        except:
+            response = response[:response.find('</html>')+7]
         return response 
 
     def post(self, url, username, password):
+        header = ("POST {} HTTP/1.1\r\n"
+                "Host: {}\r\n\r\n"
+                "username=hi&password=we\r\n").format('/', url)
+        self.sock.send(header)
+        response = self.sock.recv(4096)
         print response
         return
 
-#path = 'queensfarm.org'
-#r =  Requester(path)
-#path = '/'
-#print r.get(path)
+#path = 'http://austinchildrensacademy.org'
+r =  Requester('stealmylogin.com')
+#path = 'http://austinchildrensacademy.org/about-aca/'
+print r.post('','','')
 
