@@ -1,19 +1,20 @@
 Requester:
-    Implement GET
+    -SSL
+    -GET
+        -Work with postInfo
         -Error checks socket connections
-        -Chunking (Might have to ask)
-    Implement POST (HOLD)
-    SSL OPTIONAL***
-        -WireShark for 300 Error
-
+    -POST 
+        >Work with postInfo
+    
 Crawling:
+    -Work with postInfo
 
 Parsing:
+    -Work with postInfo
+    -Parse for login fields on login_page
 
 BruteForce:
-    Find form elements
-    Notify user whether a login was succesful 
+    -Notify user whether a login was succesful 
 
 Questions:
-    -Do the keywords have to be in search order
-
+    -Where is login username coming from

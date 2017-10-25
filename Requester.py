@@ -1,3 +1,4 @@
+import requests
 import re
 import threading
 import time
@@ -35,6 +36,7 @@ class Requester:
                     "Connection: Keep-Alive\r\n\r\n").format(path,self.host,self.user_agent)
 
         #"Cache-Control: no-cache, no-store, must-revalidate\r\n"
+        print header
         self.sock.send(header)
         response_header = ""
         response = ""
@@ -72,20 +74,43 @@ class Requester:
                 current_amount = current_amount + len(latest_response)
                 response += latest_response
         except:
-            response = response[:response.find('</html>')+7]
-        return response 
+            #find HTML or html
+            response = response[:response.find('</HTML>')+7]
+        #Return Object:
+        # URL
+        # cookies
+        # respone body
+        # **user_name
+        # **password
+        result = postInfo(url, cookies, response)
+        return result 
 
-    def post(self, url, username, password):
-        header = ("POST {} HTTP/1.1\r\n"
+    def post(self, postInfo):
+        #iterating through fields and adding to body of post
+        body = ""
+
+        header = ("POST {} HTTP/1.0\r\n"
                 "Host: {}\r\n\r\n"
-                "username=hi&password=we\r\n").format('/', url)
-        self.sock.send(header)
-        response = self.sock.recv(4096)
-        print response
-        return
+                "{}\r\n").format(postInfo.url,self.host,body)
+        print header
+        response = ""
+        try:
+            self.sock.send(header)
+            while True:
+                latest_response  = self.sock.recv(1024)
+                response += latest_response
+        except:
+            #find HTML or html
+            response = response[:response.find('</HTML>')+7]
+        return response
 
 #path = 'http://austinchildrensacademy.org'
-r =  Requester('stealmylogin.com')
+r =  Requester('http://www.badstore.net')
 #path = 'http://austinchildrensacademy.org/about-aca/'
-print r.post('','','')
+#print r.get('http://wwww.badstore.net/cgi-bin/badstore.cgi')
+#print requests.get('http://www.badstore.net/cgi-bin/badstore.cgi?action=loginregister').content
+
+print '\n'
+#print r.get('http://www.badstore.net/cgi-bin/badstore.cgi?action=loginregister')
+print r.post('/cgi-bin/badstore.cgi?action=loginregister','','')
 
