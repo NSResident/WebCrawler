@@ -22,10 +22,10 @@ word_dict = {}
 link_dict = {}
 
 # Starting url
-starting_url = "http://austinchildrensacademy.org"
+starting_url = "http://shop.nhl.com"
+#starting_url = "http://austinchildrensacademy.org"
 main_domain = starting_url.split("//")[1].split(".")[0]
 requester = Requester(starting_url)
-
 def searchInit(initial_url):
     # :ssword:q Makes q/s
     # Add first url to q/s
@@ -88,7 +88,7 @@ def search(domain):
     # Get Text
     # Change  requests to use own get
     #html_text = requests.request('GET', domain.url, timeout=7).text
-    html_text = requester.get(domain.url) 
+    html_text = requester.get(domain.url).response_body
     if html_text == -1:
         return None
     soup = BeautifulSoup(html_text, 'html.parser')

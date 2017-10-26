@@ -1,16 +1,11 @@
 Requester:
     -SSL
     -GET
-        -Work with postInfo
         -Error checks socket connections
-    -POST 
-        >Work with postInfo
     
 Crawling:
-    -Work with postInfo
 
 Parsing:
-    -Work with postInfo
     -Parse for login fields on login_page
 
 BruteForce:
@@ -18,3 +13,9 @@ BruteForce:
 
 Questions:
     -Where is login username coming from
+
+Recently Finished:
+Updated Requester(GET and POST), Crawler, and Parser to work with PostInfo
+BruteForcer Created
+
+
