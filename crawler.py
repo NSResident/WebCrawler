@@ -2,7 +2,6 @@ from page import Page
 from url_node import URL_Node
 from Queue import Queue
 from Stack import Stack
-import requests
 from bs4 import BeautifulSoup
 # from threading import Thread
 from Requester import Requester
@@ -12,24 +11,29 @@ search_flag = 0 if input("BFS (0) or DFS (1): ") == 0 else 1
 max_pages = input("Max pages: ")
 max_depth = input("Max depth: ")
 
+#Form Action
+action = ""
+
 # Queue for page objects
 parserQueue = Queue()
 
-# Dictionary of keywords
-word_dict = {}
+# List of keywords
+word_dict = []
 
 # Dictoinary of visited Linkes
 link_dict = {}
 
+# Login url
+login_url= ""
+
 # Starting url
-starting_url = "http://shop.nhl.com"
+starting_url = "http://127.0.0.1"
 #starting_url = "http://austinchildrensacademy.org"
 main_domain = starting_url.split("//")[1].split(".")[0]
 requester = Requester(starting_url)
 def searchInit(initial_url):
     # :ssword:q Makes q/s
     # Add first url to q/s
-    form_url = ""
     link_dict[initial_url] = initial_url
     first_url = URL_Node(initial_url+'/', 0)
     if search_flag == 0:
@@ -66,8 +70,6 @@ def searchInit(initial_url):
         # Check if object was empty from page error Edit to check for response
         if next_page:
             if next_page.url_list and nextUrl.depth < max_depth:
-                if next_page.login_url and not form_url:
-                    form_url = next_page.login_url
                 # Put all links into q/s
                 for url_item in next_page.url_list:
                     next_node = URL_Node(url_item, nextUrl.depth + 1)
@@ -88,7 +90,10 @@ def search(domain):
     # Get Text
     # Change  requests to use own get
     #html_text = requests.request('GET', domain.url, timeout=7).text
+    global login_url
+    global action
     html_text = requester.get(domain.url).response_body
+    print html_text
     if html_text == -1:
         return None
     soup = BeautifulSoup(html_text, 'html.parser')
@@ -100,9 +105,9 @@ def search(domain):
             link_list.append(link.get('href'))
 
     # Check for login
-    login_url = ''
     if soup.find_all(type='password'):
         login_url = domain.url
+        action = soup.find('form').get('action')
     crawledPage = Page(link_list, html_text, login_url)
     return crawledPage
 
@@ -165,9 +170,6 @@ def leetSpeak(string):
 def parser():
     while True:
         if parserQueue.empty():
-            for key in word_dict.keys():
-                print key
-                continue
             return
         page = parserQueue.get()
         print parserQueue.qsize()
@@ -176,9 +178,11 @@ def parser():
         word_list = soup.get_text().replace("'", '').replace('"', '') \
             .replace(',','').replace(';','').split()
         for element in word_list:
-            if (len(element) < 6) or (len(element) > 15) or (':' in element):
+            if ':' in element:
                 continue
-            word_dict[element] = {element, reverse(element), leetSpeak(element)}
+            word_dict.append(element)
+            word_dict.append(reverse(element))
+            word_dict.append(leetSpeak(element))
     return
 
 searchInit(starting_url)
@@ -187,3 +191,5 @@ searchInit(starting_url)
 parser()
 # robotSearch()
 # OR Call bruteForce func
+print action
+print requester.bruteForce(login_url, 'root', word_dict, action)

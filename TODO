@@ -1,21 +1,15 @@
 Requester:
+    -Fixing POST
+    -Checking cookie
     -SSL
-    -GET
-        -Error checks socket connections
-    
 Crawling:
 
 Parsing:
-    -Parse for login fields on login_page
 
 BruteForce:
-    -Notify user whether a login was succesful 
 
 Questions:
-    -Where is login username coming from
 
 Recently Finished:
-Updated Requester(GET and POST), Crawler, and Parser to work with PostInfo
-BruteForcer Created
 
 
