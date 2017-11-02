@@ -88,6 +88,7 @@ class Requester:
         except:
             #find HTML or html
             response = response[:response.find('</html>')+7]
+        
         #Return Object:
         # URL
         # cookies
@@ -122,8 +123,8 @@ class Requester:
             cookie_string = ""
             for key in info.cookies.keys():
                 cookie_string += key + "=" + info.cookies[key]+ ';'
-                cookie_string += "\r\n"
-            header += "Cookie: {}".format(cookie_string)
+                cookie_string += " "
+            header += "Cookie: {}".format(cookie_string)+"\r\n"
         header += "\r\n"
         header += body + "\r\n\r\n"
         # print header
