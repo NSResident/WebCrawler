@@ -120,11 +120,12 @@ def search(domain):
                     input_string = str(inputs[i])
                     if 'password' in input_string: #password_input
                         login_string = str(inputs[i-1]) #Guessing here
+                        print "MADE IT"
                         login_name_index = login_string.find('name="') + 6
-                        login_name_end = login_string[login_name_index:].find('"')
+                        login_name_end = login_name_index+login_string[login_name_index:].find('"')
                         login_name = login_string[login_name_index:login_name_end]
                         password_name_index = input_string.find('name="') + 6
-                        password_name_end = input_string[password_name_index:].find('"')
+                        password_name_end = password_name_index + input_string[password_name_index:].find('"')
                         password_name = input_string[password_name_index:password_name_end]
 
         action = soup.find('form').get('action')
@@ -211,5 +212,7 @@ searchInit(starting_url)
 parser()
 # robotSearch()
 # OR Call bruteForce func
-print action
-print requester.bruteForce(login_url, 'root', word_dict, action, login_name, password_name))
+print "LOGIN AND PASS BELOW"
+print login_name
+print password_name
+print requester.bruteForce(login_url, 'root', word_dict, action, login_name, password_name)

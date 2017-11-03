@@ -10,10 +10,15 @@ from postInfo import postInfo
 class Requester:
     host = ""
     user_agent = "CSE361-KappaBot"
-
+    const = ("GET {0} HTTP/1.1\r\n"
+                    "Host: {1}\r\n"
+                    "User-Agent: {2}\r\n"
+                    "Pragma: no-cache\r\n"
+                    "Accept: text/plain, text/html\r\n"
+                    "Accept-Language: en-US\r\n"
+                    "Connection: Keep-Alive\r\n")
     def __init__(self, domain):
         self.host = domain.replace('http://', '')
-        print self.host
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.settimeout(4)
         # Handle if connection not made
@@ -29,25 +34,20 @@ class Requester:
         # path = path[path.find('/')+1:]
         # path = path[path.find('/'):]
         path = urlparse(url).path
-        if path == '' or path[0] != '/':
-            path = '/'
-        header = ("GET {} HTTP/1.1\r\n"
-                    "Host: {}\r\n"
-                    "User-Agent: {}\r\n"
-                    "Pragma: no-cache\r\n"
-                    "Accept: text/plain, text/html\r\n"
-                    "Accept-Encoding: \r\n"
-                    "Accept-Language: en-US\r\n"
-                    "Connection: Keep-Alive\r\n\r\n").format(path,self.host,self.user_agent)
+        print path
 
+        header = self.const.format(str(path),self.host,self.user_agent)
+
+        print header
         #"Cache-Control: no-cache, no-store, must-revalidate\r\n"
         if cookies:
             cookie_string = ""
-            for key in info.cookies.keys():
-                cookie_string += key + "=" + info.cookies[key]+ ';'
+            for key in cookies.keys():
+                cookie_string += key + "=" + cookies[key]+ ';'
                 cookie_string += " "
-            header += "Cookie: {}".format(cookie_string)+"\r\n"
-
+            header += "Cookie: {}".format(cookie_string[:-2])+"\r\n"
+        header += "\r\n"
+        print header
         self.sock.send(header)
         response_header = ""
         response = ""
@@ -120,18 +120,16 @@ class Requester:
                 "Host: {}\r\n"
                 "User-Agent: {}\r\n"
                 "Accept: text/plain, text/html\r\n"
-                "Accept-Encoding: \r\n"
                 "Content-Type: application/x-www-form-urlencoded\r\n"
                 "Content-Length: {}\r\n"
                 "Connection: Keep-Alive\r\n"
                 ).format(path,self.host,self.user_agent,len(body))
-        print info.cookies
         if info.cookies:
             cookie_string = ""
             for key in info.cookies.keys():
                 cookie_string += key + "=" + info.cookies[key]+ ';'
                 cookie_string += " "
-            header += "Cookie: {}".format(cookie_string)+"\r\n"
+            header += "Cookie: {}".format(cookie_string[:-2])+"\r\n"
         header += "\r\n"
         header += body + "\r\n\r\n"
         # print header
@@ -140,13 +138,14 @@ class Requester:
         try:
             self.sock.send(header)
             latest_response = self.sock.recv(1024)
-            print latest_response
             while latest_response.strip():
                 response += latest_response
                 latest_response  = self.sock.recv(1024)
         except:
             #find HTML or html
-            response = response[:response.find('</html>')+7]
+            if response.find("<html>") != -1:
+                response = response[:response.find('</html>')+7]
+            print response
             return response
 
 #Returns Dictionary of correct credentials if successful bruteforce.
@@ -156,10 +155,9 @@ class Requester:
         info  = self.get(url)
         #Assume action doesnt have a slash
         info.url = info.url+action[1:]
-        print info.url
         #Attempt to login
         query = {}
-        query[username_field] = username
+        query[login_field] = username
         for password in keywords:
             query[password_field] = password
             response = self.post(info, query)
@@ -167,13 +165,15 @@ class Requester:
             redirect = re.search('3\d{2}',response_code)
             if redirect:
                 new_host_index = response.find("Location: ") + len("Location: ")
-                new_host_end = response[new_host].find('\n')
+                new_host_end = response[new_host_index:].find('\n') + new_host_index
                 new_host = response[new_host_index:new_host_end]
+                new_host = urlparse(new_host).path
+                new_host = 'http://' + self.host + '/' + new_host
                 response = self.get(new_host, cookies=info.cookies)
+                print response.response_body
             #If response is redirect (3**) then call get on the url at location: xxxx
             #Else its probably js and just check the page returned for password
-            print response
-            soup = BeautifulSoup(response, "html.parser")
+            soup = BeautifulSoup(response.response_body, "html.parser")
             if soup.findAll(type ="password"):
                 #False if Login successful(supposedly)
                 print response
