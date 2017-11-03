@@ -169,7 +169,7 @@ class Requester:
                 new_host_index = response.find("Location: ") + len("Location: ")
                 new_host_end = response[new_host].find('\n')
                 new_host = response[new_host_index:new_host_end]
-                response = self.get(new_host, info.cookies)
+                response = self.get(new_host, cookies=info.cookies)
             #If response is redirect (3**) then call get on the url at location: xxxx
             #Else its probably js and just check the page returned for password
             print response
