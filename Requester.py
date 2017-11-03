@@ -24,10 +24,10 @@ class Requester:
     def __del__(self):
         self.sock.close()
 
-    def get(self, url):
-        #path =  url[url.find('/')+1:]
-        #path = path[path.find('/')+1:]
-        #path = path[path.find('/'):]
+    def get(self, url, cookies=None):
+        # path =  url[url.find('/')+1:]
+        # path = path[path.find('/')+1:]
+        # path = path[path.find('/'):]
         path = urlparse(url).path
         if path == '' or path[0] != '/':
             path = '/'
@@ -41,6 +41,13 @@ class Requester:
                     "Connection: Keep-Alive\r\n\r\n").format(path,self.host,self.user_agent)
 
         #"Cache-Control: no-cache, no-store, must-revalidate\r\n"
+        if cookies:
+            cookie_string = ""
+            for key in info.cookies.keys():
+                cookie_string += key + "=" + info.cookies[key]+ ';'
+                cookie_string += " "
+            header += "Cookie: {}".format(cookie_string)+"\r\n"
+
         self.sock.send(header)
         response_header = ""
         response = ""
@@ -88,7 +95,7 @@ class Requester:
         except:
             #find HTML or html
             response = response[:response.find('</html>')+7]
-        
+
         #Return Object:
         # URL
         # cookies
@@ -144,7 +151,7 @@ class Requester:
 
 #Returns Dictionary of correct credentials if successful bruteforce.
 #Unsuccessful Bruteforces return null
-    def bruteForce(self, url, username, keywords, action):
+    def bruteForce(self, url, username, keywords, action, login_field, password_field):
         #r = Requester(url)
         info  = self.get(url)
         #Assume action doesnt have a slash
@@ -152,11 +159,17 @@ class Requester:
         print info.url
         #Attempt to login
         query = {}
-        query[info.username_field] = username
+        query[username_field] = username
         for password in keywords:
-            query[info.password_field] = password
+            query[password_field] = password
             response = self.post(info, query)
-
+            response_code = response.splitlines()[0]
+            redirect = re.search('3\d{2}',response_code)
+            if redirect:
+                new_host_index = response.find("Location: ") + len("Location: ")
+                new_host_end = response[new_host].find('\n')
+                new_host = response[new_host_index:new_host_end]
+                response = self.get(new_host, info.cookies)
             #If response is redirect (3**) then call get on the url at location: xxxx
             #Else its probably js and just check the page returned for password
             print response

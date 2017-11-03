@@ -11,6 +11,9 @@ search_flag = 0 if input("BFS (0) or DFS (1): ") == 0 else 1
 max_pages = input("Max pages: ")
 max_depth = input("Max depth: ")
 
+login_name = ""
+password_name = ""
+
 #Form Action
 action = ""
 
@@ -107,6 +110,23 @@ def search(domain):
     # Check for login
     if soup.find_all(type='password'):
         login_url = domain.url
+        forms = soup.find_all('form')
+        for form in forms:
+            if 'password' in str(form):
+                global login_name
+                global password_name
+                inputs = form.find_all('input')
+                for i in range(len(inputs)):
+                    input_string = str(inputs[i])
+                    if 'password' in input_string: #password_input
+                        login_string = str(inputs[i-1]) #Guessing here
+                        login_name_index = login_string.find('name="') + 6
+                        login_name_end = login_string[login_name_index:].find('"')
+                        login_name = login_string[login_name_index:login_name_end]
+                        password_name_index = input_string.find('name="') + 6
+                        password_name_end = input_string[password_name_index:].find('"')
+                        password_name = input_string[password_name_index:password_name_end]
+
         action = soup.find('form').get('action')
     crawledPage = Page(link_list, html_text, login_url)
     return crawledPage
@@ -192,4 +212,4 @@ parser()
 # robotSearch()
 # OR Call bruteForce func
 print action
-print requester.bruteForce(login_url, 'root', word_dict, action)
+print requester.bruteForce(login_url, 'root', word_dict, action, login_name, password_name))
