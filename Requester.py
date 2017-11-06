@@ -20,7 +20,7 @@ class Requester:
     def __init__(self, domain):
         self.host = domain.replace('http://', '')
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.settimeout(4)
+        self.sock.settimeout(1)
         # Handle if connection not made
         self.sock.connect((self.host, 80))
         if self.sock == -1:
@@ -33,7 +33,7 @@ class Requester:
         # path =  url[url.find('/')+1:]
         # path = path[path.find('/')+1:]
         # path = path[path.find('/'):]
-        path = urlparse(url).path
+        path = urlparse(url).path.rstrip()
         print path
 
         header = self.const.format(str(path),self.host,self.user_agent)
@@ -160,7 +160,8 @@ class Requester:
         query[login_field] = username
         for password in keywords:
             query[password_field] = password
-            response = self.post(info, query)
+            r = Requester(self.host)
+            response = r.post(info, query)
             response_code = response.splitlines()[0]
             redirect = re.search('3\d{2}',response_code)
             if redirect:
@@ -168,8 +169,8 @@ class Requester:
                 new_host_end = response[new_host_index:].find('\n') + new_host_index
                 new_host = response[new_host_index:new_host_end]
                 new_host = urlparse(new_host).path
-                new_host = 'http://' + self.host + '/' + new_host
-                response = self.get(new_host, cookies=info.cookies)
+                new_host = 'http://' + r.host + '/' + new_host
+                response = r.get(new_host, cookies=info.cookies)
                 print response.response_body
             #If response is redirect (3**) then call get on the url at location: xxxx
             #Else its probably js and just check the page returned for password
