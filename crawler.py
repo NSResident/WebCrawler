@@ -30,7 +30,7 @@ link_dict = {}
 login_url= ""
 
 # Starting url
-starting_url = "http://127.0.0.1"
+starting_url = "http://172.25.94.102"
 #starting_url = "http://austinchildrensacademy.org"
 main_domain = starting_url.split("//")[1].split(".")[0]
 requester = Requester(starting_url)

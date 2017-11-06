@@ -1,14 +1,20 @@
 Requester:
-    -Fixing POST
     -SSL
 Crawling:
 
 Parsing:
-
+    -Make multithreaded
 BruteForce:
 
 Questions:
 
-Recently Finished:
+GUI:
+   -Modify crawler to wrap into a class
+   -Modify GUI to take crawler return and properly display it as text
+   -Link buttons to Crawler/Requester Functions
+   -Modify bruteforce to return dictionary of items tried and success
+   -Add field to add more Users
 
+Recently Finished:
+    -Fixing POST
 
