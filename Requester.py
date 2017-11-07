@@ -19,6 +19,7 @@ class Requester:
                     "Connection: Keep-Alive\r\n")
     def __init__(self, domain):
         self.host = domain.replace('http://', '')
+        print self.host
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.settimeout(1)
         # Handle if connection not made
