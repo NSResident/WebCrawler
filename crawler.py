@@ -90,7 +90,7 @@ class Crawler:
             # print "Url is "
             print nextUrl.url
             url_list.append(nextUrl.url)
-            print self.link_dict
+            #print self.link_dict
             if self.link_dict.get(nextUrl.url):
                 print "\n\n\n\n\n\n\n\n\n\n\n\n Repeated link, Skipping" + str(nextUrl.url)
                 continue
@@ -98,7 +98,8 @@ class Crawler:
             print "\n\n\nn\n\n\n\n\nn\nn searched"
             self.link_dict[nextUrl.url] = nextUrl.url
             if next_page:
-                print next_page.html_text
+                None
+                #print next_page.html_text
             # print nextUrl.url
             # Check if object was empty from page error Edit to check for response
             if next_page:
@@ -151,7 +152,6 @@ class Crawler:
                         input_string = str(inputs[i])
                         if 'password' in input_string: #password_input
                             login_string = str(inputs[i-1]) #Guessing here
-                            print "MADE IT"
                             login_name_index = login_string.find('name="') + 6
                             login_name_end = login_name_index+login_string[login_name_index:].find('"')
                             self.login_name = login_string[login_name_index:login_name_end]
@@ -244,8 +244,8 @@ class Crawler:
                 self.word_dict.append(self.leetSpeak(element))
         return
 
-#crawl = Crawler(3,3,0,False,False)
-#crawl.searchInit("http://www.animalfriendsrescue.org")
+crawl = Crawler(3,3,0,False,False)
+crawl.searchInit("http://172.25.92.138")
 #robotSearch()
 #subdomainSearch()
 #parser()
@@ -254,4 +254,4 @@ class Crawler:
 #print "LOGIN AND PASS BELOW"
 #print login_name
 #print password_name
-#print requester.bruteForce(login_url, 'root', word_dict, action, login_name, password_name)
+print crawl.requester.bruteForce(crawl.login_url, 'root', crawl.word_dict, crawl.action, crawl.login_name, crawl.password_name)

