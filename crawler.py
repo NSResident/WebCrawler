@@ -38,14 +38,28 @@ class Crawler:
         self.parse_subdomains = subdom
         self.parse_robots = robots
 
+    def searchStart(self, initial_url):
+        visited_urls = self.searchInit(initial_url)
+        if self.parse_subdomains:
+            self.subdomainSearch()
+        if self.parse_robots:
+            self.robotSearch()
+        return visited_urls
+
     def searchInit(self,initial_url):
         # :ssword:q Makes q/s
         # Add first url to q/s
+        self.starting_url = initial_url
+        url_list = []
         main_domain = urlparse(initial_url).netloc
-        self.requester = Requester(initial_url)
+        try:
+            self.requester = Requester(initial_url)
+        except:
+            return
         print main_domain
-        self.link_dict[initial_url] = initial_url
         first_url = URL_Node(initial_url+'/', 0)
+        if self.link_dict.get(first_url.url):
+            del self.link_dict[first_url.url]
         if self.search_flag == 0:
             self.crawlerQueue = Queue()
             self.crawlerQueue.put(first_url)
@@ -75,7 +89,14 @@ class Crawler:
             # Call search and return page object
             # print "Url is "
             print nextUrl.url
+            url_list.append(nextUrl.url)
+            print self.link_dict
+            if self.link_dict.get(nextUrl.url):
+                print "\n\n\n\n\n\n\n\n\n\n\n\n Repeated link, Skipping" + str(nextUrl.url)
+                continue
             next_page = self.search(nextUrl)
+            print "\n\n\nn\n\n\n\n\nn\nn searched"
+            self.link_dict[nextUrl.url] = nextUrl.url
             if next_page:
                 print next_page.html_text
             # print nextUrl.url
@@ -87,14 +108,14 @@ class Crawler:
                         next_node = URL_Node(url_item, nextUrl.depth + 1)
                         # Ignore repeated links when crawling
                         if self.link_dict.get(next_node.url) is None:
-                            self.link_dict[next_node.url] = next_node.url
                             if self.search_flag == 0:
                                 self.crawlerQueue.put(next_node)
                             else:
                                 self.crawlerStack.push(next_node)
                 self.parserQueue.put(next_page)
             counter = counter - 1
-        return
+        self.parser()
+        return url_list
 
 
     # Searches url and returns a "page" of text and links
@@ -103,7 +124,10 @@ class Crawler:
         # Change  requests to use own get
         #html_text = requests.request('GET', domain.url, timeout=7).text
         print domain.url
-        html_text = self.requester.get(domain.url)
+        try:
+            html_text = self.requester.get(domain.url)
+        except:
+            html_text = -1
         if html_text == -1:
             return None
         else:
@@ -142,14 +166,19 @@ class Crawler:
 
     # Parses domain/robots.txt for links and calls searchInit
     def robotSearch(self):
-        robot_text = requests.request('GET', starting_url + "/robots.txt").text
+        beginning_url = self.starting_url
+        try:
+            robot_text = self.requester.get(beginning_url + "/robots.txt")
+        except:
+            return
         allow_links = robotParse(robot_text, 'Allow: ')
         disallow_links = robotParse(robot_text, 'Disallow: ')
         parsed_links = allow_links + disallow_links
         for link in parsed_links:
             print link
             # print "calling searchInit"
-            searchInit(starting_url + link)
+            self.searchInit(beginning_url + link)
+            self.starting_url = beginning_url
         # Parse for lines with disallow, then do initial_url/path
         # Option 1 call searchInit on all initial_url/path individually (I like this one)
         # Option 2 store all intial_url/path in stack for searchInit
@@ -157,14 +186,16 @@ class Crawler:
 
 
     def subdomainSearch(self):
+        beginning_url = self.starting_url
         subdomain_text = open("subdomains-100.txt", 'r')
         subdomains = subdomain_text.read().split('\n')
         del subdomains[-1]
-        domain_index = starting_url.find('.')
+        domain_index = self.starting_url.find('.')
         for domain in subdomains:
-            domain_to_search = "http://" + domain + starting_url[domain_index:]
-            print domain_to_search
-            searchInit(domain_to_search)
+            domain_to_search = "http://" + domain + beginning_url[domain_index:]
+            print "SUBDOMAIN SEARCH " +  domain_to_search
+            self.searchInit(domain_to_search)
+            self.starting_url = beginning_url
 
         return
 
@@ -197,10 +228,10 @@ class Crawler:
     # [word, reversed, leetSpeak] to be placed into a dictionary of words
     def parser(self):
         while True:
-            if parserQueue.empty():
+            if self.parserQueue.empty():
                 return
-            page = parserQueue.get()
-            print parserQueue.qsize()
+            page = self.parserQueue.get()
+            print self.parserQueue.qsize()
             soup = BeautifulSoup(page.html_text, 'html.parser')
             # Get all strings
             word_list = soup.get_text().replace("'", '').replace('"', '') \
@@ -208,13 +239,13 @@ class Crawler:
             for element in word_list:
                 if ':' in element:
                     continue
-                word_dict.append(element)
-                word_dict.append(reverse(element))
-                word_dict.append(leetSpeak(element))
+                self.word_dict.append(element)
+                self.word_dict.append(self.reverse(element))
+                self.word_dict.append(self.leetSpeak(element))
         return
 
-crawl = Crawler(3,3,1,False,False)
-crawl.searchInit("http://www.denverpost.com")
+#crawl = Crawler(3,3,0,False,False)
+#crawl.searchInit("http://www.animalfriendsrescue.org")
 #robotSearch()
 #subdomainSearch()
 #parser()
