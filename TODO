@@ -5,7 +5,8 @@ Crawling:
 Parsing:
     -Make multithreaded
 BruteForce:
-
+    -Check if multi works
+    -Work for multiple usernames (loop through list of usernames)
 Questions:
 
 GUI:
