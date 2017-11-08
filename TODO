@@ -3,9 +3,9 @@ Requester:
 Crawling:
 
 Parsing:
-    -Make multithreaded
+    -Make multithreaded (?)`
 BruteForce:
-    -Check if multi works
+    -Check if get to redirect is neccassary
     -Work for multiple usernames (loop through list of usernames)
 Questions:
 
@@ -17,5 +17,5 @@ GUI:
    -Add field to add more Users
 
 Recently Finished:
-    -Fixing POST
+    -Multithreaded Bruteforce
 

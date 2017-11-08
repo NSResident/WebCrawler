@@ -196,29 +196,6 @@ class Requester:
         query = {}
         #Only works for one username
         query[login_field] = username
-        #for password in keywords:
-        #    query[password_field] = password
-        #    r = Requester(self.host)
-        #    response = r.post(info, query)
-        #    response_code = response.splitlines()[0]
-        #    redirect = re.search('3\d{2}',response_code)
-        #    if redirect:
-        #        new_host_index = response.find("Location: ") + len("Location: ")
-        #        new_host_end = response[new_host_index:].find('\n') + new_host_index
-        #        new_host = response[new_host_index:new_host_end]
-        #        new_host = urlparse(new_host).path
-        #        new_host = 'http://' + r.host + '/' + new_host
-        #        response = r.get(new_host, cookies=info.cookies)
-        #        print response.response_body
-        #    #If response is redirect (3**) then call get on the url at location: xxxx
-        #    #Else its probably js and just check the page returned for password
-        #    soup = BeautifulSoup(response.response_body, "html.parser")
-        #    if soup.findAll(type ="password"):
-        #        #False if Login successful(supposedly)
-        #        print response
-        #        continue
-        #    else:
-        #        return {"Username": username, "Password": password}
         threads = []
         for i in range(4):
             low = (len(keywords)/4)*i
