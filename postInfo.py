@@ -1,6 +1,6 @@
 class postInfo:
     url = ""
-    cookies = ""
+    cookies = None
     response_body = ""
 
     def __init__(self, url, cookies, response_body):

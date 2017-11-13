@@ -69,7 +69,8 @@ class Crawler:
         # Page counter
         counter = self.max_pages
         # Make Q for Parser
-        while counter >= 0:
+        while counter > 0:
+            print "COUNTER IS : " + str(counter)
             # Take from q/s and check for domain, if it does not continue
             # Also added if queue was empty to cover edge case of q/s hanging when max_pages < available pages
             if self.search_flag == 0:
@@ -158,6 +159,9 @@ class Crawler:
                             password_name_index = input_string.find('name="') + 6
                             password_name_end = password_name_index + input_string[password_name_index:].find('"')
                             self.password_name = input_string[password_name_index:password_name_end]
+                            print self.login_name
+                            print self.password_name
+                            print self
 
             self.action = soup.find('form').get('action')
         crawledPage = Page(link_list, html_text, self.login_url)
@@ -190,9 +194,9 @@ class Crawler:
         subdomain_text = open("subdomains-100.txt", 'r')
         subdomains = subdomain_text.read().split('\n')
         del subdomains[-1]
-        domain_index = self.starting_url.find('.')
+        parsed_domain = urlparse(beginning_url)
         for domain in subdomains:
-            domain_to_search = "http://" + domain + beginning_url[domain_index:]
+            domain_to_search = parsed_domain.scheme + '://' + domain + '.' + parsed_domain.netloc
             print "SUBDOMAIN SEARCH " +  domain_to_search
             self.searchInit(domain_to_search)
             self.starting_url = beginning_url
@@ -244,8 +248,9 @@ class Crawler:
                 self.word_dict.append(self.leetSpeak(element))
         return
 
-crawl = Crawler(3,3,0,False,False)
-crawl.searchInit("http://172.25.92.138")
+#crawl = Crawler(3,3,0,False,False)
+#crawl.searchInit("http://forrescue.net")
+#print crawl.requester.bruteForce(crawl.login_url, 'root', crawl.word_dict, crawl.action, crawl.login_name, crawl.password_name)
 #robotSearch()
 #subdomainSearch()
 #parser()
@@ -254,4 +259,3 @@ crawl.searchInit("http://172.25.92.138")
 #print "LOGIN AND PASS BELOW"
 #print login_name
 #print password_name
-print crawl.requester.bruteForce(crawl.login_url, 'root', crawl.word_dict, crawl.action, crawl.login_name, crawl.password_name)
