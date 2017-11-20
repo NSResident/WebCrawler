@@ -11,9 +11,10 @@ from ssl import wrap_socket
 attempts = []
 success = False
 login_cred = ""
+pattern = re.compile("([4-5]..)")
 class Requester:
+    global pattern
     attempt_values = []
-    pattern = re.compile("([4-5]..)")
     host = ""
     user_agent = "CSE361-KappaBot"
     const = ("GET {0} HTTP/1.1\r\n"
@@ -91,7 +92,7 @@ class Requester:
         # print response_header
         response = initial_response[initial_response.find('<html'):]
         #Handle Error Codes
-        if(self.pattern.match(status_code)):
+        if(pattern.match(status_code)):
             return -1
         self.sock.send(header)
         print header
