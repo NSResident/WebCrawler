@@ -1,7 +1,7 @@
 Requester:
     -SSL
 Crawling:
-
+     - Crawl relative paths and construct links
 Parsing:
     -Make multithreaded (?)`
 BruteForce:

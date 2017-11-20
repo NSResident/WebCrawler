@@ -14,6 +14,7 @@ class Crawler:
     max_depth = 1
     login_name = ""
     password_name = ""
+    login_form = {}
     #Form Action
     action = ""
     # Queue for page objects
@@ -151,6 +152,14 @@ class Crawler:
                     inputs = form.find_all('input')
                     for i in range(len(inputs)):
                         input_string = str(inputs[i])
+                        if 'type="hidden' in input_string:
+                            field_name_index = input_string.find('name="') + 6
+                            field_name_end = field_name_index + input_string[field_name_index:].find('"')
+                            field_name = input_string[field_name_index:field_name_end]
+                            field_value_index = input_string.find('value="') + 7
+                            field_value_end = field_value_index + input_string[field_value_index:].find('"')
+                            field_value = input_string[field_name_index:field_value_end]
+                            self.login_form[field_name] = field_value
                         if 'password' in input_string: #password_input
                             login_string = str(inputs[i-1]) #Guessing here
                             login_name_index = login_string.find('name="') + 6
@@ -161,8 +170,9 @@ class Crawler:
                             self.password_name = input_string[password_name_index:password_name_end]
                             print self.login_name
                             print self.password_name
-                            print self
-
+                            print "BEGINS HERE"
+                            for item in self.login_form:
+                                print item
             self.action = soup.find('form').get('action')
         crawledPage = Page(link_list, html_text, self.login_url)
         return crawledPage
@@ -185,8 +195,7 @@ class Crawler:
             self.starting_url = beginning_url
         # Parse for lines with disallow, then do initial_url/path
         # Option 1 call searchInit on all initial_url/path individually (I like this one)
-        # Option 2 store all intial_url/path in stack for searchInit
-        return
+        # Option 2 store all intial_url/path in stack for searchInturn
 
 
     def subdomainSearch(self):
