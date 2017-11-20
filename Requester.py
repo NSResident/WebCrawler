@@ -60,7 +60,6 @@ class Requester:
                 cookie_string += " "
             header += "Cookie: {}".format(cookie_string[:-2])+"\r\n"
         header += "\r\n"
-        print header
         self.sock.send(header)
         response_header = ""
         response = ""
@@ -148,7 +147,7 @@ class Requester:
             header += "Cookie: {}".format(cookie_string[:-2])+"\r\n"
         header += "\r\n"
         header += body + "\r\n\r\n"
-        #print header
+        print header
         response = ""
         try:
             self.sock.send(header)

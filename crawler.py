@@ -158,7 +158,7 @@ class Crawler:
                             field_name = input_string[field_name_index:field_name_end]
                             field_value_index = input_string.find('value="') + 7
                             field_value_end = field_value_index + input_string[field_value_index:].find('"')
-                            field_value = input_string[field_name_index:field_value_end]
+                            field_value = input_string[field_value_index:field_value_end]
                             self.login_form[field_name] = field_value
                         if 'password' in input_string: #password_input
                             login_string = str(inputs[i-1]) #Guessing here
