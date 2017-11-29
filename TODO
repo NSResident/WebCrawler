@@ -1,19 +1,13 @@
 Requester:
-    -SSL
 Crawling:
-     - Crawl relative paths and construct links
+
 Parsing:
     -Make multithreaded (?)`
 BruteForce:
-    -Check if get to redirect is neccassary
     -Work for multiple usernames (loop through list of usernames)
 Questions:
 
 GUI:
-   -Modify crawler to wrap into a class
-   -Modify GUI to take crawler return and properly display it as text
-   -Link buttons to Crawler/Requester Functions
-   -Modify bruteforce to return dictionary of items tried and success
    -Add field to add more Users
 
 Recently Finished:

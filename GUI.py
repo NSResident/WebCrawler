@@ -35,6 +35,8 @@ def crawl(page_max, depth_max, search_type, subdom, robots, initial_url):
     global BF_text
     global crawler_object
     crawler_object = Crawler(int(page_max),int(depth_max), int(search_type),bool(subdom), bool(robots))
+    if initial_url[:5] != "http":
+        initial_url = "http://" + initial_url
     visited = crawler_object.searchStart(initial_url)
     BF_text = Text(root)
     BF_text.grid(row = 9, columnspan = 2, sticky = N+S+E+W)
