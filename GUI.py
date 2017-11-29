@@ -4,44 +4,40 @@ root = Tk()
 crawler_object = None
 def show_words():
     if crawler_object:
-        BF_text = Text(root)
-        BF_text.grid(row = 9, columnspan = 2, sticky = N+S+E+W)
+        text_box = Text(root)
+        text_box.grid(row = 9, columnspan = 2, sticky = N+S+E+W)
         filtered_dict = [word for n,word in enumerate(crawler_object.word_dict) if word not in crawler_object.word_dict[:n]]
         crawler_object.word_dict = filtered_dict
         for word in filtered_dict:
-            BF_text.insert(END, word.encode('utf-8') + '\n')
+            text_box.insert(END, word.encode('utf-8') + '\n')
 def bruteforce_page(names):
     global crawler_object
-    BF_text = Text(root)
-    print crawler_object
-    print crawler_object.login_url
-    print crawler_object.word_dict
-    print crawler_object.action
+    text_box = Text(root)
     name_list = []
     if names:
         name_list = names.split(',')
-    print len(name_list)
-    BF_text.grid(row = 9, columnspan = 2)
-    BF_text.insert(END, "Attempted:\n")
+    text_box.grid(row = 9, columnspan = 2)
+    text_box.insert(END, "Attempted:\n")
     if True:
         success= crawler_object.requester.bruteForceInit(crawler_object.login_url, name_list,crawler_object.word_dict, crawler_object.action, crawler_object.login_name, crawler_object.password_name, crawler_object.login_form)
         print crawler_object.requester.attempt_values
-        BF_text.insert(END, "Tried " + str(len(crawler_object.requester.attempt_values)) + " credentials")
+        text_box.insert(END, "Tried " + str(len(crawler_object.requester.attempt_values)) + " credentials")
         if success:
-            BF_text.insert(END, "\n Successful login with " + str(success))
+            text_box.insert(END, "\n Successful login with " + str(success))
     else:
-        BF_text.insert(END, "Error Bruteforcing Page. please modify your search")
+        text_box.insert(END, "Error Bruteforcing Page. please modify your search")
 def crawl(page_max, depth_max, search_type, subdom, robots, initial_url):
-    global BF_text
+    global text_box
     global crawler_object
     crawler_object = Crawler(int(page_max),int(depth_max), int(search_type),bool(subdom), bool(robots))
-    if initial_url[:5] != "http":
+    if initial_url[:4] != "http":
         initial_url = "http://" + initial_url
     visited = crawler_object.searchStart(initial_url)
-    BF_text = Text(root)
-    BF_text.grid(row = 9, columnspan = 2, sticky = N+S+E+W)
-    for link in visited:
-        BF_text.insert(END, str(link) +"\n")
+    filtered_links = [word for n,word in enumerate(visited) if word not in visited[:n]]
+    text_box = Text(root)
+    text_box.grid(row = 9, columnspan = 2, sticky = N+S+E+W)
+    for link in filtered_links:
+        text_box.insert(END, str(link) +"\n")
 
 for i in range(10):
     root.grid_columnconfigure(i, weight = 2)
