@@ -23,13 +23,13 @@ def bruteforce_page(names):
     print len(name_list)
     BF_text.grid(row = 9, columnspan = 2)
     BF_text.insert(END, "Attempted:\n")
-    try:
+    if True:
         success= crawler_object.requester.bruteForceInit(crawler_object.login_url, name_list,crawler_object.word_dict, crawler_object.action, crawler_object.login_name, crawler_object.password_name, crawler_object.login_form)
         print crawler_object.requester.attempt_values
         BF_text.insert(END, "Tried " + str(len(crawler_object.requester.attempt_values)) + " credentials")
         if success:
             BF_text.insert(END, "\n Successful login with " + str(success))
-    except:
+    else:
         BF_text.insert(END, "Error Bruteforcing Page. please modify your search")
 def crawl(page_max, depth_max, search_type, subdom, robots, initial_url):
     global BF_text

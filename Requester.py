@@ -44,7 +44,7 @@ class Requester:
         self.sock.close()
 
     def get(self, url, cookies=None):
-        #print "GET CALLED" + url
+        #
         # path =  url[url.find('/')+1:]
         # path = path[path.find('/')+1:]
         # path = path[path.find('/'):]
@@ -66,7 +66,7 @@ class Requester:
         status_code = ""
         total = 0
         initial_response = self.sock.recv(4096)
-        #print initial_response
+        #
         #Parse for header fields
         for s in initial_response.splitlines():
             response_header += s
@@ -81,21 +81,21 @@ class Requester:
             #else if field[0] == 'Transfer-Encoding':
             #    if field[1] == 'chunked':
         #Parse Cookies
-        #print response_header
+        #
         cookies = {}
         for field in response_header.split('\n'):
             if "Set-Cookie:" in  field:
                 values = field[len("Set-Cookie: "):].split(';')
                 pair = values[0].split('=')
                 cookies[pair[0]] = pair[1]
-        # print cookies
-        # print response_header
+        # 
+        # 
         response = initial_response[initial_response.find('<html'):]
         #Handle Error Codes
         if(pattern.match(status_code)):
             return -1
         self.sock.send(header)
-        #print header
+        #
         current_amount = len(response)
         #while current_amount < total:
         try:
@@ -122,9 +122,9 @@ class Requester:
     def post(self, info, fields):
         #iterating through fields and adding to body of post
         #field dictionary in post
-        #print info.url
+        #
         path = urlparse(info.url).path
-        #print "PATH " + str(path)
+        #
         # Build request body
         body = ""
         for key in fields.keys():
@@ -147,7 +147,7 @@ class Requester:
             header += "Cookie: {}".format(cookie_string[:-2])+"\r\n"
         header += "\r\n"
         header += body + "\r\n\r\n"
-        print header
+        
         response = ""
         try:
             self.sock.send(header)
@@ -159,7 +159,7 @@ class Requester:
             #find HTML or html
             if response.find("<html>") != -1:
                 response = response[:response.find('</html>')+7]
-            #print response
+            #
         redirect = self.handle_redirect(response, info.cookies)
         if redirect:
             response = redirect
@@ -172,7 +172,7 @@ class Requester:
         global login_cred
         global list_lock
         for i in range(low,high):
-            #print success
+            #
             if success:
                 return None
             query = form_inputs.copy()
@@ -180,11 +180,11 @@ class Requester:
             attempts.append(passwords[i])
             r = Requester(self.initial_host)
             response = r.post(info, query)
-            #print response
+            #
             redirect = self.handle_redirect(response)
-            print "TRYING" + str(passwords[i])
-            #print "REDIRECT? " + str(redirect)
-            #print response.response_body
+            print "TRYING " + str(passwords[i])
+            #
+            #
             #If response is redirect (3**) then call get on the url at location: xxxx
             #Else its probably js and just check the page returned for password
             if redirect:
@@ -205,9 +205,9 @@ class Requester:
         global login_cred
         credential_list = []
         if not user_list:
-            print " Added Standard Users "
+            
             user_list = user_list + standard_users
-            print user_list
+            
         for user in user_list:
             self.bruteForce(url, user, keywords, action, login_field, password_field, login_form)
             if login_cred:
@@ -219,9 +219,10 @@ class Requester:
         #r = Requester(url)
         global attempts
         global login_cred
-        #print "URL "+str(url)
+        #
+        print url
         info  = self.get(url)
-        #print info.url
+        #
         #Assume action doesnt have a slash
         if action[0] == '/':
             action = action[1:]
@@ -244,10 +245,10 @@ class Requester:
     def handle_redirect(self, response, cookies= None):
         status = re.compile('3\d{2}')
         response_code = response.splitlines()[0]
-        #print response_code
+        #
         redirect = status.search(response_code)
-        #print redirect
-        #print response
+        #
+        #
         if redirect:
             new_host_index = response.find("Location: ") + len("Location: ")
             new_host_end = response[new_host_index:].find('\n') + new_host_index
@@ -261,7 +262,7 @@ class Requester:
                 else:
                     new_host = self.scheme + '://' + self.host + '/' + new_host
                 new_host= ''.join(new_host.split())
-                print new_host
+                
                 new_response = self.get(new_host, cookies)
                 return new_response.response_body
 
@@ -273,11 +274,11 @@ class Requester:
 #info = r.get('http://shop.nhl.com')
 #r.post(info, {"Hello":"World", "foo":"bar"})
 #path = 'http://austinchildrensacademy.org/about-aca/'
-#print r.get('http://wwww.badstore.net/cgi-bin/badstore.cgi')
-#print requests.get('http://www.badstore.net/cgi-bin/badstore.cgi?action=loginregister').content
+#
+#
 
-#print '\n'
-#print r.get('http://www.badstore.net/cgi-bin/badstore.cgi?action=loginregister')
+#
+#
 #info = postInfo('/cgi-bin/badstore.cgi?action=loginregister','','')
-#print r.post(info,fields = {'email': 'admin\' AND 1=1 -- ', 'password': ''})
+#
 

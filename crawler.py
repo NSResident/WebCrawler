@@ -57,7 +57,7 @@ class Crawler:
             self.requester = Requester(initial_url)
         except:
             return
-        print main_domain
+        
         first_url = URL_Node(initial_url+'/', 0)
         if self.link_dict.get(first_url.url):
             del self.link_dict[first_url.url]
@@ -71,7 +71,7 @@ class Crawler:
         counter = self.max_pages
         # Make Q for Parser
         while counter > 0:
-            print "COUNTER IS : " + str(counter)
+            
             # Take from q/s and check for domain, if it does not continue
             # Also added if queue was empty to cover edge case of q/s hanging when max_pages < available pages
             if self.search_flag == 0:
@@ -85,24 +85,24 @@ class Crawler:
 
             # Stay within the domain of initial url
             # Needs to work for AA.BBB.CCC.com
-            print nextUrl.url
+            
             if urlparse(nextUrl.url).netloc != main_domain:
                 continue
             # Call search and return page object
-            # print "Url is "
-            print nextUrl.url
+            # 
+            
             url_list.append(nextUrl.url)
-            #print self.link_dict
+            #
             if self.link_dict.get(nextUrl.url):
-                print "\n\n\n\n\n\n\n\n\n\n\n\n Repeated link, Skipping" + str(nextUrl.url)
+                
                 continue
             next_page = self.search(nextUrl)
-            print "\n\n\nn\n\n\n\n\nn\nn searched"
+            
             self.link_dict[nextUrl.url] = nextUrl.url
             if next_page:
                 None
-                #print next_page.html_text
-            # print nextUrl.url
+                #
+            # 
             # Check if object was empty from page error Edit to check for response
             if next_page:
                 if next_page.url_list and nextUrl.depth < self.max_depth:
@@ -126,7 +126,7 @@ class Crawler:
         # Get Text
         # Change  requests to use own get
         #html_text = requests.request('GET', domain.url, timeout=7).text
-        print domain.url
+        
         try:
             html_text = self.requester.get(domain.url)
         except:
@@ -139,7 +139,7 @@ class Crawler:
         # Get links
         link_list = []
         for link in soup.find_all('a'):
-            #print link
+            #
             if link.get('href') is not None and "http" in link.get('href'):
                 link_list.append(link.get('href'))
 
@@ -168,11 +168,11 @@ class Crawler:
                             password_name_index = input_string.find('name="') + 6
                             password_name_end = password_name_index + input_string[password_name_index:].find('"')
                             self.password_name = input_string[password_name_index:password_name_end]
-                            print self.login_name
-                            print self.password_name
-                            print "BEGINS HERE"
+                            
+                            
+                            
                             for item in self.login_form:
-                                print item
+                                print item                    
             self.action = soup.find('form').get('action')
         crawledPage = Page(link_list, html_text, self.login_url)
         return crawledPage
@@ -189,8 +189,8 @@ class Crawler:
         disallow_links = robotParse(robot_text, 'Disallow: ')
         parsed_links = allow_links + disallow_links
         for link in parsed_links:
-            print link
-            # print "calling searchInit"
+            
+            # 
             self.searchInit(beginning_url + link)
             self.starting_url = beginning_url
         # Parse for lines with disallow, then do initial_url/path
@@ -206,7 +206,7 @@ class Crawler:
         parsed_domain = urlparse(beginning_url)
         for domain in subdomains:
             domain_to_search = parsed_domain.scheme + '://' + domain + '.' + parsed_domain.netloc
-            print "SUBDOMAIN SEARCH " +  domain_to_search
+            
             self.searchInit(domain_to_search)
             self.starting_url = beginning_url
 
@@ -244,7 +244,7 @@ class Crawler:
             if self.parserQueue.empty():
                 return
             page = self.parserQueue.get()
-            print self.parserQueue.qsize()
+            
             soup = BeautifulSoup(page.html_text, 'html.parser')
             # Get all strings
             word_list = soup.get_text().replace("'", '').replace('"', '') \
@@ -259,12 +259,12 @@ class Crawler:
 
 #crawl = Crawler(3,3,0,False,False)
 #crawl.searchInit("http://forrescue.net")
-#print crawl.requester.bruteForce(crawl.login_url, 'root', crawl.word_dict, crawl.action, crawl.login_name, crawl.password_name)
+#
 #robotSearch()
 #subdomainSearch()
 #parser()
 # robotSearch()
 # OR Call bruteForce func
-#print "LOGIN AND PASS BELOW"
-#print login_name
-#print password_name
+#
+#
+#

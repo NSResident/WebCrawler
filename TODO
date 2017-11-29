@@ -2,14 +2,10 @@ Requester:
 Crawling:
 
 Parsing:
-    -Make multithreaded (?)`
 BruteForce:
-    -Work for multiple usernames (loop through list of usernames)
 Questions:
 
 GUI:
-   -Add field to add more Users
 
 Recently Finished:
-    -Multithreaded Bruteforce
 
