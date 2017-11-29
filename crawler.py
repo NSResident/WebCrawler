@@ -43,9 +43,10 @@ class Crawler:
         self.clear()
         visited_urls = self.searchInit(initial_url)
         if self.parse_subdomains:
-            self.subdomainSearch()
+            subdomains = self.subdomainSearch()
         if self.parse_robots:
-            self.robotSearch()
+            robot_domains = self.robotSearch()
+            visited_urls = visited_urls + robot_domains
         return visited_urls
 
     def searchInit(self,initial_url):
@@ -55,7 +56,6 @@ class Crawler:
         url_list = []
         main_domain = urlparse(initial_url).netloc
         try:
-            print initial_url
             self.requester = Requester(initial_url)
         except:
             return
@@ -123,7 +123,6 @@ class Crawler:
         self.link_dict = {}
         self.login_url = ""
         self.starting_url = ""
-        self.parse_subdomains = False
     # Searches url and returns a "page" of text and links
     def search(self, domain):
         # Get Text
@@ -171,49 +170,44 @@ class Crawler:
                             password_name_index = input_string.find('name="') + 6
                             password_name_end = password_name_index + input_string[password_name_index:].find('"')
                             self.password_name = input_string[password_name_index:password_name_end]
-
-
-
-                            for item in self.login_form:
-                                print item
             self.action = soup.find('form').get('action')
         crawledPage = Page(link_list, html_text, self.login_url)
         return crawledPage
-
-
     # Parses domain/robots.txt for links and calls searchInit
     def robotSearch(self):
         beginning_url = self.starting_url
+        visited_set = []
         try:
-            robot_text = self.requester.get(beginning_url + "/robots.txt")
+            robot_text = self.requester.get(beginning_url + "/robots.txt").response_body
         except:
-            return
-        allow_links = robotParse(robot_text, 'Allow: ')
-        disallow_links = robotParse(robot_text, 'Disallow: ')
+            return visited_set
+        allow_links = self.robotParse(robot_text, 'Allow: ')
+        disallow_links = self.robotParse(robot_text, 'Disallow: ')
         parsed_links = allow_links + disallow_links
-        for link in parsed_links:
-
-            #
-            self.searchInit(beginning_url + link)
+        filtered_links = [word for n,word in enumerate(parsed_links) if word not in parsed_links[:n]]
+        for link in filtered_links:
+            new_subdomain = self.searchInit(beginning_url + link)
+            if new_subdomain:
+                visited_set = visited_set + new_subdomain
             self.starting_url = beginning_url
+        return visited_set
         # Parse for lines with disallow, then do initial_url/path
         # Option 1 call searchInit on all initial_url/path individually (I like this one)
         # Option 2 store all intial_url/path in stack for searchInturn
-
-
     def subdomainSearch(self):
         beginning_url = self.starting_url
         subdomain_text = open("subdomains-100.txt", 'r')
         subdomains = subdomain_text.read().split('\n')
         del subdomains[-1]
         parsed_domain = urlparse(beginning_url)
+        visited_set = []
         for domain in subdomains:
             domain_to_search = parsed_domain.scheme + '://' + domain + '.' + parsed_domain.netloc
-
-            self.searchInit(domain_to_search)
+            new_subdomain = self.searchInit(domain_to_search)
+            if new_subdomain:
+                visited_set = visited_set + new_subdomain
             self.starting_url = beginning_url
-
-        return
+        return visited_set
 
     def robotParse(self, page, delim):
         filter_links = page.split(delim)

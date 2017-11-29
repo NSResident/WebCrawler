@@ -49,7 +49,6 @@ class Requester:
         # path = path[path.find('/')+1:]
         # path = path[path.find('/'):]
         path = urlparse(url).path.rstrip()
-
         header = self.const.format(str(path),self.host,self.user_agent)
 
         #"Cache-Control: no-cache, no-store, must-revalidate\r\n"
@@ -91,26 +90,23 @@ class Requester:
         response = initial_response[initial_response.find('<html'):]
         #Handle Error Codes
         if(pattern.match(status_code)):
-            print "Status Error"
             return -1
         self.sock.send(header)
         current_amount = len(response)
         #while current_amount < total:
         try:
-            print "A"
             latest_response = self.sock.recv(1024)
             while latest_response.strip():
                 current_amount = current_amount + len(latest_response)
                 response += latest_response
                 latest_response  = self.sock.recv(1024)
         except:
-            print "B"
+            pass
             #find HTML or html
-            response = response[:response.find('</html>')+7]
+            #print response
+            #response = response[:response.find('</html>')+7]
         redirect = self.handle_redirect(response_header, cookies)
-        print "Redirect?"
         if redirect:
-            print "YES"
             response = redirect
         #Return Object:
         # URL
@@ -184,7 +180,6 @@ class Requester:
             response = r.post(info, query)
             #
             redirect = self.handle_redirect(response)
-            print "TRYING " + str(passwords[i])
             #
             #
             #If response is redirect (3**) then call get on the url at location: xxxx
@@ -222,7 +217,6 @@ class Requester:
         global attempts
         global login_cred
         #
-        print url
         info  = self.get(url)
         #
         #Assume action doesnt have a slash
@@ -265,12 +259,24 @@ class Requester:
             elif not urlparse(new_host).netloc: # only has relativepath
                 if new_host.startswith('/'):
                     new_host = self.scheme + '://' +  self.host + new_host
+                elif urlparse(self.initial_host).netloc == new_host:
+                    self.host = new_host
+                    #relax back to initial domain
+                elif urlparse(self.initial_host).netloc == urlparse(new_host).netloc:
+                    self.host = urlparse(new_host).netloc
             else:
-                new_host = self.scheme + '://' + self.host + '/' + new_host
+                if new_host.startswith("http://"):
+                    new_host = new_host[7:]
+                elif new_host.startswith("https://"):
+                    new_host = new_host[8:]
+                new_host = self.scheme + '://' + new_host
                 new_host= ''.join(new_host.split())
-                new_response = self.get(new_host, cookies)
+                if self.host in new_host:# subdomain
+                    self.host = urlparse(new_host).netloc
+                    new_response = self.get(new_host, cookies)
+                else:
+                    return False
             return new_response.response_body
-
         return False
 
 
