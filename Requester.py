@@ -88,27 +88,29 @@ class Requester:
                 values = field[len("Set-Cookie: "):].split(';')
                 pair = values[0].split('=')
                 cookies[pair[0]] = pair[1]
-        # 
-        # 
         response = initial_response[initial_response.find('<html'):]
         #Handle Error Codes
         if(pattern.match(status_code)):
+            print "Status Error"
             return -1
         self.sock.send(header)
-        #
         current_amount = len(response)
         #while current_amount < total:
         try:
+            print "A"
             latest_response = self.sock.recv(1024)
             while latest_response.strip():
                 current_amount = current_amount + len(latest_response)
                 response += latest_response
                 latest_response  = self.sock.recv(1024)
         except:
+            print "B"
             #find HTML or html
             response = response[:response.find('</html>')+7]
         redirect = self.handle_redirect(response_header, cookies)
+        print "Redirect?"
         if redirect:
+            print "YES"
             response = redirect
         #Return Object:
         # URL
@@ -147,7 +149,7 @@ class Requester:
             header += "Cookie: {}".format(cookie_string[:-2])+"\r\n"
         header += "\r\n"
         header += body + "\r\n\r\n"
-        
+
         response = ""
         try:
             self.sock.send(header)
@@ -205,9 +207,9 @@ class Requester:
         global login_cred
         credential_list = []
         if not user_list:
-            
+
             user_list = user_list + standard_users
-            
+
         for user in user_list:
             self.bruteForce(url, user, keywords, action, login_field, password_field, login_form)
             if login_cred:
@@ -245,26 +247,29 @@ class Requester:
     def handle_redirect(self, response, cookies= None):
         status = re.compile('3\d{2}')
         response_code = response.splitlines()[0]
-        #
         redirect = status.search(response_code)
-        #
-        #
         if redirect:
             new_host_index = response.find("Location: ") + len("Location: ")
             new_host_end = response[new_host_index:].find('\n') + new_host_index
             new_host = response[new_host_index:new_host_end]
             if self.host == urlparse(new_host).netloc:
+                if self.scheme != "https" and new_host.startswith("https"):
+                    self.sock.close()
+                    self.scheme = "https"
+                    self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    self.sock.settimeout(1)
+                    self.sock = wrap_socket(self.sock)
+                    self.sock.connect((self.host, 443))
                 new_response = self.get(new_host, cookies)
                 return new_response.response_body
             elif not urlparse(new_host).netloc: # only has relativepath
                 if new_host.startswith('/'):
                     new_host = self.scheme + '://' +  self.host + new_host
-                else:
-                    new_host = self.scheme + '://' + self.host + '/' + new_host
+            else:
+                new_host = self.scheme + '://' + self.host + '/' + new_host
                 new_host= ''.join(new_host.split())
-                
                 new_response = self.get(new_host, cookies)
-                return new_response.response_body
+            return new_response.response_body
 
         return False
 
