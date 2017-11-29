@@ -1,6 +1,8 @@
 Requester:
 Crawling:
 
+Identify and add links that use relative paths instead of full links
+
 Parsing:
 BruteForce:
 Questions:
