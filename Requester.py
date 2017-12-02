@@ -13,6 +13,7 @@ attempts = []
 success = False
 login_cred = ""
 pattern = re.compile("([4-5]..)")
+
 class Requester:
     global pattern
     initial_host = ""

@@ -142,8 +142,11 @@ class Crawler:
         link_list = []
         for link in soup.find_all('a'):
             #
-            if link.get('href') is not None and "http" in link.get('href'):
-                link_list.append(link.get('href'))
+            if link.get('href') is not None:
+                if "http" in link.get('href'):
+                    link_list.append(link.get('href'))
+                elif link.get('href')[0] == "/" :
+                    link_list.append(self.starting_url +link.get('href'))
 
         # Check for login
         if soup.find_all(type='password'):
