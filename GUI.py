@@ -16,11 +16,12 @@ def bruteforce_page(names):
     name_list = []
     if names:
         name_list = names.split(',')
+        for name in name_list:
+            name = name.split()
     text_box.grid(row = 9, columnspan = 2)
     text_box.insert(END, "Attempted:\n")
     if True:
         success= crawler_object.requester.bruteForceInit(crawler_object.login_url, name_list,crawler_object.word_dict, crawler_object.action, crawler_object.login_name, crawler_object.password_name, crawler_object.login_form)
-        print crawler_object.requester.attempt_values
         text_box.insert(END, "Tried " + str(len(crawler_object.requester.attempt_values)) + " credentials")
         if success:
             text_box.insert(END, "\n Successful login with " + str(success))
@@ -45,7 +46,7 @@ for i in range(10):
 url = Label(root, text = "URL")
 max_depth = Label(root,text="Max Depth")
 max_pages = Label(root, text = "Max Pages")
-extra_users = Label(root, text = "Extra Users")
+extra_users = Label(root, text = "Users")
 url_entry = Entry(root)
 depth_entry = Entry(root)
 pages_entry = Entry(root)

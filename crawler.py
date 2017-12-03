@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from page import Page
 from url_node import URL_Node
 from Queue import Queue
@@ -72,7 +73,6 @@ class Crawler:
         counter = self.max_pages
         # Make Q for Parser
         while counter > 0:
-
             # Take from q/s and check for domain, if it does not continue
             # Also added if queue was empty to cover edge case of q/s hanging when max_pages < available pages
             if self.search_flag == 0:
@@ -83,10 +83,8 @@ class Crawler:
                 if self.crawlerStack.is_empty():
                     break
                 nextUrl = self.crawlerStack.pop()
-
             # Stay within the domain of initial url
             # Needs to work for AA.BBB.CCC.com
-
             if urlparse(nextUrl.url).netloc != main_domain:
                 continue
             # Call search and return page object
@@ -94,7 +92,6 @@ class Crawler:
             if self.link_dict.get(nextUrl.url):
                 continue
             next_page = self.search(nextUrl)
-
             self.link_dict[nextUrl.url] = nextUrl.url
             # Check if object was empty from page error Edit to check for response
             if next_page:
@@ -249,12 +246,16 @@ class Crawler:
             # Get all strings
             word_list = soup.get_text().replace("'", '').replace('"', '') \
                 .replace(',','').replace(';','').split()
+            illegal_characters= ['/','#','%','&','^',':',',','"',"'",'[',']','{','}',';','\\','|','<','>']
             for element in word_list:
-                if ':' in element:
-                    continue
-                self.word_dict.append(element)
-                self.word_dict.append(self.reverse(element))
-                self.word_dict.append(self.leetSpeak(element))
+                    valid =  ((char in element or len(element) < 3 or len(element) > 15) for char in illegal_characters)
+                    if any(valid):
+                        continue
+                    else:
+                        self.word_dict.append(element)
+                        self.word_dict.append(self.reverse(element))
+                        self.word_dict.append(self.leetSpeak(element))
+        self.word_dict = OrderedDict((x, True) for x in self.word_dict).keys()
         return
 
 #crawl = Crawler(3,3,0,False,False)

