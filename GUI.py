@@ -25,6 +25,8 @@ def bruteforce_page(names):
         text_box.insert(END, "Tried " + str(len(crawler_object.requester.attempt_values)) + " credentials")
         if success:
             text_box.insert(END, "\n Successful login with " + str(success))
+        else:
+            text_box.insert(END, "Bruteforce Unsuccessful")
     else:
         text_box.insert(END, "Error Bruteforcing Page. please modify your search")
 def crawl(page_max, depth_max, search_type, subdom, robots, initial_url):
